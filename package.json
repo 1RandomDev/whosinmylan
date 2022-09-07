@@ -1,14 +1,19 @@
 {
   "name": "whosinmylan",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.0",
+  "description": "Network scanner with webinterface and notifications.",
+  "main": "src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "1RandomDev",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/1RandomDev/whosinmylan#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/1RandomDev/whosinmylan.git"
+  },
   "dependencies": {
     "axios": "^0.27.2",
     "better-sqlite3": "^7.6.2",

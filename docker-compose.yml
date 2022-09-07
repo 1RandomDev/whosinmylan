@@ -8,6 +8,7 @@ services:
     volumes:
       - ./data:/data
     environment:
+      - TZ=<timezone>
       - INTERFACE=eth0
       - SCAN_INTERVAL=60
       - WEBUI_PORT=8484
