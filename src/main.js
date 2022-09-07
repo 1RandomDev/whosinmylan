@@ -53,11 +53,11 @@ class Main {
         this.webinterface = new Webinterface(process.env.WEBUI_PORT || 8484, process.env.WEBUI_PASSWORD, process.env.WEBUI_JWT_KEY, this);
         this.webinterface.start();
         
-        /*this.updateDeviceList();
+        this.updateDeviceList();
     
         setInterval(() => {
             this.updateDeviceList();
-        }, this.scanInterval);*/
+        }, this.scanInterval);
     }
 }
 new Main().start();
