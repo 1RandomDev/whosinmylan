@@ -4,14 +4,41 @@
         <meta charset="UTF-8">
         <title>Whos In My LAN</title>
 
+        <link rel="icon" type="image/png" href="img/icon.png">
         <link href="css/bootstrap.min.css" rel="stylesheet">
     </head>
     <body>
-        <span id="loginMessage" style="display: none;">Incorrect credentials</span>
-        <form id="loginForm">
-            <input name="password" type="password" placeholder="Password">
-            <button type="submit" disabled>Login</button>
-        </form>
+        <div class="container h-100">
+            <div class="row justify-content-sm-center h-100">
+                <div class="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
+                    <div class="text-center mt-5">
+                        <h2>Whos In My LAN</h2>
+                    </div>
+                    <div class="card shadow-lg mt-5">
+                        <div class="text-center mt-5">
+                            <img src="img/icon.png" alt="logo" width="100">
+                        </div>
+                        <div class="card-body p-5">
+                            <h1 class="fs-4 card-title fw-bold mb-3">Login</h1>
+                            <p class="text-danger mb-2 d-none" id="loginMessage">Incorrect password</p>
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <input type="password" class="form-control" name="password" placeholder="Password" required autofocus>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 text-uppercase" disabled>
+                                    Login
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed-bottom mb-3 ms-3">
+            <a href="https://github.com/1RandomDev/whosinmylan">GitHub</a>
+        </div>
 
         <script src="js/login.js"></script>
     </body>

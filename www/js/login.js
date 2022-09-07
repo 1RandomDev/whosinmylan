@@ -1,10 +1,10 @@
 const loginForm = document.getElementById('loginForm');
 const loginBtn = loginForm.querySelector('button[type="submit"]');
-const loginPassword = loginForm.querySelector('input');
 const loginMessage = document.getElementById('loginMessage');
 
 loginForm.addEventListener('submit', function(event) {
     event.preventDefault();
+    const data = new FormData(loginForm);
 
     const req = new XMLHttpRequest();
     req.onreadystatechange = function() {
@@ -14,16 +14,16 @@ loginForm.addEventListener('submit', function(event) {
         if(result.success) {
             window.location.replace('/');
         } else {
-            loginMessage.style.display = null;
-            loginPassword.value = '';
+            loginMessage.classList.remove('d-none');
+            loginForm.reset();
             loginBtn.disabled = true;
         }
     };
     req.open('POST', '/api/login');
     req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    req.send(JSON.stringify({password: loginPassword.value}));
+    req.send(JSON.stringify({password: data.get('password')}));
 });
 
-loginPassword.addEventListener('input', () => {
-    loginBtn.disabled = loginPassword.value == '';
+loginForm.addEventListener('input', () => {
+    loginBtn.disabled = !loginForm.checkValidity();
 });
