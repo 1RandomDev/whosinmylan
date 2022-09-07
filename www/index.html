@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Whos In My LAN</title>
+
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            .known-btn {
+                width: 50px;
+            }
+            .default-checkbox:checked {
+                background-color: var(--bs-blue) !important;
+                border-color: var(--bs-blue) !important;
+            }
+            table td {
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container mt-3">
+            <div class="clearfix">
+                <button id="logoutBtn" class="btn btn-link p-0 float-end invisible">Logout</button>
+            </div>
+            <h2>Online</h2>
+            <table id="tableOnline" class="table table-striped mb-5">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Mac</th>
+                        <th>Ip</th>
+                        <th>Hardware</th>
+                        <th>Known</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <button class="btn btn-primary float-end mt-2" data-bs-toggle="modal" data-bs-target="#addDeviceModal">Add Offline Device</button>
+            <h2>Offline</h2>
+            <table id="tableOffline" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Mac</th>
+                        <th>Ip</th>
+                        <th>Hardware</th>
+                        <th>Last seen</th>
+                        <th>Known</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="modal fade" tabindex="-1" id="addDeviceModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Offline Device</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form class="was-validated" novalidate>
+                        <div class="modal-body">
+                            <p class="text-info">This menu is only for manually adding devices that were never online yet. Usually new devices are discovered automatically.</p>
+                            <div class="mb-3">
+                                <label for="addDeviceFormName" class="form-label">Name</label>
+                                <input type="text" class="form-control" placeholder="Computer" id="addDeviceFormName" name="name" required>
+                                <div class="invalid-feedback">Please enter a name.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="addDeviceFormMac" class="form-label">MAC-Address</label>
+                                <input type="text" class="form-control" placeholder="xx:xx:xx:xx:xx:xx" id="addDeviceFormMac" name="mac" required pattern="^([\da-fA-F]{2}[:-]){5}[\da-fA-F]{2}$">
+                                <div class="invalid-feedback">Please enter a valid MAC address.</div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input default-checkbox" id="addDeviceFormKnown" name="known">
+                                <label class="form-check-label text-white" for="addDeviceFormKnown">Known</label>
+                            </div>                            
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" disabled>Add Device</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="addDeviceForm.reset();">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+          </div>          
+    </body>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/index.js"></script>
+</html>
