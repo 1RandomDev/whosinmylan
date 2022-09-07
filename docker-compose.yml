@@ -1,0 +1,19 @@
+version: "3.4"
+
+services:
+  whosinmylan:
+    container_name: whosinmylan
+    image: ghcr.io/1randomdev/whosinmylan:latest
+    network_mode: host
+    volumes:
+      - ./data:/data
+    environment:
+      - INTERFACE=eth0
+      - SCAN_INTERVAL=60
+      - WEBUI_PORT=8484
+      - WEBUI_PASSWORD=<my_password>
+      - WEBUI_JWT_KEY=<long_random_string>
+      - GOTIFY_URL=https://gotify.myserver.de
+      - GOTIFY_TOKEN=<gotify_token>
+      - GOTIFY_PRIORITY=10
+    restart: unless-stopped
