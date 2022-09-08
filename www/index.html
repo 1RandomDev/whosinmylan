@@ -20,9 +20,11 @@
         </style>
     </head>
     <body>
-        <div class="container mt-3">
-            <div class="clearfix">
-                <button id="logoutBtn" class="btn btn-link p-0 float-end invisible">Logout</button>
+        <div class="container mt-5">
+            <div class="clearfix float-end">
+                <a href="/api/export/devices.json" download>Export JSON</a>
+                <a href="/api/export/devices.csv" download>Export CSV</a>
+                <a href="" id="logoutBtn" class="ms-2 invisible">Logout</a>
             </div>
             <h2>Online</h2>
             <table id="tableOnline" class="table table-striped mb-5">

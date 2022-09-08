@@ -116,7 +116,9 @@ function updateDevice(device, method, cb) {
 }
 
 if(document.cookie.includes('token=')) logoutBtn.classList.remove('invisible');
-logoutBtn.addEventListener('click', () => {
+logoutBtn.addEventListener('click', function(event) {
+    event.preventDefault();
+
     const req = new XMLHttpRequest();
     req.onreadystatechange = function() {
         if (this.readyState != 4 || this.status != 200) return;

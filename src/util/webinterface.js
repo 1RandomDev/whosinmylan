@@ -2,6 +2,8 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
+const { stringify } = require('csv-stringify/sync');
+const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
 
 class Webinterface {
     constructor(port, adminPassword, jwtKey, main) {
@@ -63,6 +65,28 @@ class Webinterface {
         });
         this.app.use(express.static('./www'));
 
+        this.app.get('/api/export/devices.csv', (req, res) => {
+            const devices = this.main.database.getAllDevices();
+            let csv = [['Name', 'Known', 'Mac', 'Ip', 'Hardware', 'Last seen']];
+            devices.forEach(device => {
+                csv.push([device.name, device.known ? 'true' : 'false', device.mac, device.ip, device.hw, device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)]);
+            });
+            csv = stringify(csv);
+
+            res.setHeader('Content-Type', 'text/csv');
+            res.send(csv);
+        });
+        this.app.get('/api/export/devices.json', (req, res) => {
+            const devices = this.main.database.getAllDevices();
+            devices.forEach(device => {
+                device.id = undefined;
+                device.known = device.known ? true : false;
+                device.last_seen = device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen);
+            });
+
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(devices, null, 4));
+        });
         this.app.get('/api/device', (req, res) => {
             const devices = this.main.database.getAllDevices();
             const now = Date.now();
