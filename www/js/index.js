@@ -7,6 +7,9 @@ const addDeviceFormButton = document.querySelector('#addDeviceModal form button[
 const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
 let devices;
 
+const urlParams = new URLSearchParams(window.location.search);
+const highlightDevice = urlParams.get('highlight');
+
 function updateDevices() {
     const req = new XMLHttpRequest();
     req.onreadystatechange = function() {
@@ -20,7 +23,7 @@ function updateDevices() {
             if(device.online) {
                 const deviceElement = document.createElement('template');
                 deviceElement.innerHTML =
-                    `<tr class="device" data-id="${device.id}">
+                    `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
                         <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
                         <td>${device.mac}</td>
                         <td>${device.ip}</td>
@@ -32,7 +35,7 @@ function updateDevices() {
             } else {
                 const deviceElement = document.createElement('template');
                 deviceElement.innerHTML =
-                    `<tr class="device align-items-center" data-id="${device.id}">
+                    `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
                         <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
                         <td>${device.mac}</td>
                         <td>${device.ip}</td>
@@ -44,6 +47,7 @@ function updateDevices() {
                 tableOffline.appendChild(deviceElement.content.firstChild);
             }
         });
+        if(highlightDevice) document.querySelector(`.device[data-id="${highlightDevice}"]`).scrollIntoView({block:'center'});
     };
     req.open('GET', '/api/device');
     req.send();

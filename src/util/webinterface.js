@@ -24,10 +24,13 @@ class Webinterface {
         this.app.use(express.json());
         this.app.use(cookieParser());
         this.app.use((req, res, next) => {
+            const queryParams = Object.keys(req.query);
+            req.rawQuery = queryParams.length != 0 ? '?'+queryParams.map(key => key + '=' + req.query[key]).join('&') : null;
+
             if(!this.adminPassword) {
                 // redirect away from login page if authentication diabled
                 if(req.path == '/login.html') {
-                    res.redirect('/');
+                    res.redirect('/'+req.rawQuery);
                     return;
                 }
             } else {
@@ -50,13 +53,13 @@ class Webinterface {
                 } else if(req.path == '/login.html') {
                     // redirect away from login page if already logged in
                     if(loggedIn) {
-                        res.redirect('/');
+                        res.redirect('/'+req.rawQuery);
                         return;
                     }
                 } else if(req.path == '/' || req.path.endsWith('.html')) {
                     // require login for all other pages
                     if(!loggedIn) {
-                        res.redirect('/login.html');
+                        res.redirect('/login.html'+req.rawQuery);
                         return;
                     }
                 }
@@ -94,7 +97,7 @@ class Webinterface {
                 if(device.last_seen == -1) {
                     device.online = false;
                 } else {
-                    device.online = device.last_seen + this.main.scanInterval*3 > now;
+                    device.online = device.last_seen + this.main.config.scanInterval*3 > now;
                 }
             });
             res.json(devices);

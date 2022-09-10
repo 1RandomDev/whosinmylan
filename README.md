@@ -23,6 +23,7 @@ docker run -d --name=whosinmylan \
     -v <data_directory>:/data \
     -e TZ=<timezone> \
     -e INTERFACE=eth0 \
+    -e WEBUI_URL=https://whosinmylan.myserver.de \
     -e WEBUI_PASSWORD=<my_password> \
     -e WEBUI_JWT_KEY=<long_random_string> \
     ghcr.io/1randomdev/whosinmylan:latest
@@ -42,6 +43,7 @@ services:
     environment:
       - TZ=<timezone>
       - INTERFACE=eth0
+      - WEBUI_URL=https://whosinmylan.myserver.de
       - WEBUI_PASSWORD=<my_password>
       - WEBUI_JWT_KEY=<long_random_string>
     restart: unless-stopped
@@ -53,6 +55,7 @@ For all available options see [docker-compose.yml](https://github.com/1RandomDev
 | -------- | ----------- | ------- |
 | INTERFACE | Interface to scan. Can be one or more, separated by space. Currently `docker0` is not allowed, as arp-scan wouldn't work with it. | eth0 |
 | SCAN_INTERVAL | Time between scans in sconds. | 60 |
+| WEBUI_URL | URL of the webinterface which is used for things like links in notifications. | none |
 | WEBUI_PORT | Port of the webinterface. | 8484 |
 | WEBUI_PASSWORD | Password for accessing the webinterface. | none |
 | WEBUI_JWT_KEY | Key for generating login tokens (JWT). Should be set to a long random string. If kept empty sessions won't be saved across restarts. | random generated |

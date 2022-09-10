@@ -11,6 +11,7 @@ services:
       - TZ=<timezone>
       - INTERFACE=eth0
       - SCAN_INTERVAL=60
+      - WEBUI_URL=https://whosinmylan.myserver.de
       - WEBUI_PORT=8484
       - WEBUI_PASSWORD=<my_password>
       - WEBUI_JWT_KEY=<long_random_string>

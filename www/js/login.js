@@ -12,7 +12,7 @@ loginForm.addEventListener('submit', function(event) {
 
         const result = JSON.parse(this.responseText);
         if(result.success) {
-            window.location.replace('/');
+            window.location.replace('/'+window.location.search);
         } else {
             loginMessage.classList.remove('d-none');
             loginForm.reset();

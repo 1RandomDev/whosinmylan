@@ -11,7 +11,19 @@ class Gotify {
         }
     }
 
-    sendNotification(title, message) {
+    sendNotification(title, message, clickUrl) {
+        const requestData = {
+            title: title,
+            message: message,
+            priority: parseInt(this.priority)
+        };
+        if(clickUrl) {
+            requestData.extras = {
+                'client::notification': {
+                    click: { url: clickUrl }
+                }
+            }
+        };
         return axios({
             method: 'post',
             headers: {
@@ -19,11 +31,7 @@ class Gotify {
                 'X-Gotify-Key': this.token
             },
             url: this.url+'/message',
-            data: {
-                title: title,
-                message: message,
-                priority: parseInt(this.priority)
-            }
+            data: requestData
         });
     }
 }

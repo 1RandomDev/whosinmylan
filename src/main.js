@@ -10,7 +10,7 @@ class Main {
 
         let foundDevices;
         try {
-            foundDevices = await arpscan.scanNetwork(process.env.INTERFACE || 'eth0');
+            foundDevices = await arpscan.scanNetwork(this.config.interface);
         } catch(err) {
             console.error('Error while scanning network: '+err);
             return;
@@ -29,13 +29,13 @@ class Main {
                 foundDevice.name = '';
                 foundDevice.known = 0;
                 foundDevice.last_seen = Date.now();
-                this.database.saveDevice(foundDevice);
+                const deviceId = this.database.saveDevice(foundDevice).id;
     
                 const message = `MAC: ${foundDevice.mac}, IP: ${foundDevice.ip}, Hw: ${foundDevice.hw}`;
                 console.log('Found new device: '+message);
                 if(this.gotify) {
                     try {
-                        await this.gotify.sendNotification('New Network Device', message);
+                        await this.gotify.sendNotification('New Network Device', message, this.config.webuiUrl ? `${this.config.webuiUrl}/?highlight=${deviceId}` : null);
                     } catch(err) {
                         console.error('Cloud not send Gotify message: '+err);
                     }
@@ -45,19 +45,33 @@ class Main {
     }
     
     start() {
-        this.scanInterval = process.env.SCAN_INTERVAL*1000 || 60000;
-        this.database = new Database(process.env.DATABASE_FILE || './data/data.db');
-        if(process.env.GOTIFY_URL && process.env.GOTIFY_TOKEN)
-            this.gotify = new Gotify(process.env.GOTIFY_URL, process.env.GOTIFY_TOKEN, process.env.GOTIFY_PRIORITY || 5);
+        this.config = {
+            scanInterval: process.env.SCAN_INTERVAL*1000 || 60000,
+            interface: process.env.INTERFACE || 'eth0',
+            databaseFile: process.env.DATABASE_FILE || './data/data.db',
+
+            gotifyUrl: process.env.GOTIFY_URL,
+            gotifyToken: process.env.GOTIFY_TOKEN,
+            gotifyPriority: process.env.GOTIFY_PRIORITY || 5,
+
+            webuiUrl: process.env.WEBUI_URL,
+            webuiPort: process.env.WEBUI_PORT || 8484,
+            webuiPassword: process.env.WEBUI_PASSWORD,
+            webuiJwtKey: process.env.WEBUI_JWT_KEY
+        };
+
+        this.database = new Database(this.config.databaseFile);
+        if(this.config.gotifyUrl && this.config.gotifyToken)
+            this.gotify = new Gotify(this.config.gotifyUrl, this.config.gotifyToken, this.config.gotifyPriority);
     
-        this.webinterface = new Webinterface(process.env.WEBUI_PORT || 8484, process.env.WEBUI_PASSWORD, process.env.WEBUI_JWT_KEY, this);
+        this.webinterface = new Webinterface(this.config.webuiPort, this.config.webuiPassword, this.config.webuiJwtKey, this);
         this.webinterface.start();
         
         this.updateDeviceList();
     
         setInterval(() => {
             this.updateDeviceList();
-        }, this.scanInterval);
+        }, this.config.scanInterval);
     }
 }
 new Main().start();
