@@ -1,9 +1,9 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const cookieParser = require('cookie-parser');
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
-const { stringify } = require('csv-stringify/sync');
-const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
+const CSV = require('csv-string');
 
 class Webinterface {
     constructor(port, adminPassword, jwtKey, main) {
@@ -23,6 +23,7 @@ class Webinterface {
 
         this.app.use(express.json());
         this.app.use(cookieParser());
+        this.app.use(fileUpload())
         this.app.use((req, res, next) => {
             const queryParams = Object.keys(req.query);
             req.rawQuery = queryParams.length != 0 ? '?'+queryParams.map(key => key + '=' + req.query[key]).join('&') : null;
@@ -72,9 +73,9 @@ class Webinterface {
             const devices = this.main.database.getAllDevices();
             let csv = [['Name', 'Known', 'Mac', 'Ip', 'Hardware', 'Last seen']];
             devices.forEach(device => {
-                csv.push([device.name, device.known ? 'true' : 'false', device.mac, device.ip, device.hw, device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)]);
+                csv.push([device.name, device.known ? 'true' : 'false', device.mac, device.ip, device.hw, device.last_seen == -1 ? 'Never' : new Date(device.last_seen).toISOString()]);
             });
-            csv = stringify(csv);
+            csv = CSV.stringify(csv);
 
             res.setHeader('Content-Type', 'text/csv');
             res.send(csv);
@@ -84,11 +85,92 @@ class Webinterface {
             devices.forEach(device => {
                 device.id = undefined;
                 device.known = device.known ? true : false;
-                device.last_seen = device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen);
+                device.last_seen = device.last_seen == -1 ? 'Never' : new Date(device.last_seen).toISOString();
             });
 
             res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify(devices, null, 4));
+        });
+        this.app.post('/api/import/devices', (req, res) => {
+            try {
+                const mimetype = req.files.file.mimetype;
+                let content = req.files.file.data.toString();
+                const devices = this.main.database.getAllDevices();
+                const stats = {
+                    imported: 0,
+                    updated: 0
+                }
+
+                switch(mimetype) {
+                    case 'application/json':
+                        content = JSON.parse(content);
+                        content.forEach(importDevice => {
+                            if(!importDevice.mac) return;
+                            if(importDevice.known != null) importDevice.known = importDevice.known ? 1 : 0;
+                            if(importDevice.last_seen != null) importDevice.last_seen = importDevice.last_seen == 'Never' ? -1 : Date.parse(importDevice.last_seen);
+
+                            let foundDevice = devices.find(dev => dev.mac == importDevice.mac);
+                            if(foundDevice) {
+                                foundDevice = {...foundDevice, ...importDevice};
+                                this.main.database.updateDevice(foundDevice);
+                                stats.updated++;
+                            } else {
+                                importDevice = {...{
+                                    name: '',
+                                    ip: '0.0.0.0',
+                                    hw: '-',
+                                    last_seen: -1,
+                                    known: 0
+                                }, ...importDevice};
+                                this.main.database.saveDevice(importDevice);
+                                stats.imported++;
+                            }
+                        });
+                        res.json(stats);
+                        break;
+                    case 'text/csv':
+                        content = CSV.parse(content);
+                        content.shift();
+                        content.forEach(importDevice => {
+                            importDevice = {
+                                name: importDevice[0],
+                                known: importDevice[1],
+                                mac: importDevice[2],
+                                ip: importDevice[3],
+                                hw: importDevice[4],
+                                last_seen: importDevice[5]
+                            }
+                            if(!importDevice.mac) return;
+                            if(importDevice.known != null) importDevice.known = importDevice.known ? 1 : 0;
+                            if(importDevice.last_seen != null) importDevice.last_seen = importDevice.last_seen == 'Never' ? -1 : Date.parse(importDevice.last_seen);
+
+                            let foundDevice = devices.find(dev => dev.mac == importDevice.mac);
+                            if(foundDevice) {
+                                foundDevice = {...foundDevice, ...importDevice};
+                                this.main.database.updateDevice(foundDevice);
+                                stats.updated++;
+                            } else {
+                                importDevice = {...{
+                                    name: '',
+                                    ip: '0.0.0.0',
+                                    hw: '-',
+                                    last_seen: -1,
+                                    known: 0
+                                }, ...importDevice};
+                                this.main.database.saveDevice(importDevice);
+                                stats.imported++;
+                            }
+                        });
+
+                        res.json(stats);
+                        break;
+                    default:
+                        res.status(400).end('Unsupported filetype.');
+                }
+            } catch(err) {
+                console.error(err);
+                res.status(400).end();
+            }
         });
         this.app.get('/api/device', (req, res) => {
             const devices = this.main.database.getAllDevices();

@@ -18,9 +18,10 @@
     "axios": "^0.27.2",
     "better-sqlite3": "^7.6.2",
     "cookie-parser": "^1.4.6",
-    "csv-stringify": "^6.2.0",
+    "csv-string": "^4.1.0",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
+    "express-fileupload": "^1.4.0",
     "jsonwebtoken": "^8.5.1",
     "sqlite3": "^5.0.11"
   }

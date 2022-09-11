@@ -25,8 +25,6 @@
     <body>
         <div class="container mt-5">
             <div class="clearfix float-end">
-                <a href="/api/export/devices.json" download>Export JSON</a>
-                <a href="/api/export/devices.csv" download>Export CSV</a>
                 <a href="" id="logoutBtn" class="ms-2 invisible">Logout</a>
             </div>
             <h2>Online</h2>
@@ -44,7 +42,10 @@
                 <tbody></tbody>
             </table>
 
-            <button class="btn btn-primary float-end mt-2" data-bs-toggle="modal" data-bs-target="#addDeviceModal">Add Offline Device</button>
+            <div class="btn-group float-end mt-2">
+                <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#addDeviceModal">Add Offline Device</button>
+                <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#exportImportModal">Export/Import Devices</button>
+            </div>
             <h2>Offline</h2>
             <table id="tableOffline" class="table table-striped">
                 <thead>
@@ -61,6 +62,7 @@
                 <tbody></tbody>
             </table>
         </div>
+
         <div class="modal fade" tabindex="-1" id="addDeviceModal">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -94,6 +96,42 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" tabindex="-1" id="exportImportModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Export/Import Devices</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group">
+                            <a class="btn btn-outline-success" href="/api/export/devices.json" download>Export JSON</a>
+                            <a class="btn btn-outline-success" href="/api/export/devices.csv" download>Export CSV</a>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label">Import Devices</label>
+                            <input type="file" class="form-control" id="inputDevicesUpload" accept="application/json,text/csv" autocomplete="off">
+                            <div class="form-text">Supported file types: JSON, CSV</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="importSuccessNotification" class="toast align-items-center text-bg-success border-0">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Import complete. New: <span class="newDevices">0</span> Updated: <span class="updatedDevices">0</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>          
+
         <div class="fixed-bottom mb-3 ms-3">
             <a href="https://github.com/1RandomDev/whosinmylan">GitHub</a>
         </div>

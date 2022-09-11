@@ -4,6 +4,9 @@ const logoutBtn = document.getElementById('logoutBtn');
 const addDeviceModal = document.querySelector('#addDeviceModal');
 const addDeviceForm = document.querySelector('#addDeviceModal form');
 const addDeviceFormButton = document.querySelector('#addDeviceModal form button[type="submit"]');
+const exportImportModal = document.getElementById('exportImportModal');
+const inputDevicesUpload = document.getElementById('inputDevicesUpload');
+const importSuccessNotification = document.getElementById('importSuccessNotification');
 const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
 let devices;
 
@@ -47,7 +50,10 @@ function updateDevices() {
                 tableOffline.appendChild(deviceElement.content.firstChild);
             }
         });
-        if(highlightDevice) document.querySelector(`.device[data-id="${highlightDevice}"]`).scrollIntoView({block:'center'});
+        if(highlightDevice) {
+            const element = document.querySelector(`.device[data-id="${highlightDevice}"]`);
+            if(element) element.scrollIntoView({block:'center'});
+        }
     };
     req.open('GET', '/api/device');
     req.send();
@@ -118,6 +124,28 @@ function updateDevice(device, method, cb) {
     req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     req.send(JSON.stringify(device));
 }
+
+inputDevicesUpload.addEventListener('change', () => {
+    const formData = new FormData();
+    formData.append('file', inputDevicesUpload.files[0]);
+
+    const req = new XMLHttpRequest();
+    req.onreadystatechange = function() {
+        if (this.readyState != 4 || this.status != 200) return;
+        
+        updateDevices();
+        bootstrap.Modal.getInstance(exportImportModal).hide();
+
+        const stats = JSON.parse(this.responseText);
+        importSuccessNotification.querySelector('.newDevices').innerText = stats.imported;
+        importSuccessNotification.querySelector('.updatedDevices').innerText = stats.updated;
+        new bootstrap.Toast(importSuccessNotification).show();
+    };
+    req.open('POST', '/api/import/devices');
+    req.send(formData);
+
+    inputDevicesUpload.value = '';
+});
 
 if(document.cookie.includes('token=')) logoutBtn.classList.remove('invisible');
 logoutBtn.addEventListener('click', function(event) {
