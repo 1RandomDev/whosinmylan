@@ -28,7 +28,7 @@ function updateDevices() {
                 deviceElement.innerHTML =
                     `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
                         <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
-                        <td>${device.mac}</td>
+                        <td>${device.mac.toUpperCase()}</td>
                         <td>${device.ip}</td>
                         <td>${device.hw}</td>
                         <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
@@ -40,7 +40,7 @@ function updateDevices() {
                 deviceElement.innerHTML =
                     `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
                         <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
-                        <td>${device.mac}</td>
+                        <td>${device.mac.toUpperCase()}</td>
                         <td>${device.ip}</td>
                         <td>${device.hw}</td>
                         <td>${device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)}</td>

@@ -6,6 +6,7 @@ RUN apk add --no-cache nodejs npm tzdata arp-scan python3 g++ make \
 COPY . /app
 WORKDIR /app
 RUN npm install --omit=dev
+RUN node tools/macvendor.js
 
 ENV DATABASE_FILE /data/data.db
 ENTRYPOINT ["node", "src/main.js"]
