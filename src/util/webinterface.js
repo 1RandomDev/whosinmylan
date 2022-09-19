@@ -26,7 +26,7 @@ class Webinterface {
         this.app.use(fileUpload())
         this.app.use((req, res, next) => {
             const queryParams = Object.keys(req.query);
-            req.rawQuery = queryParams.length != 0 ? '?'+queryParams.map(key => key + '=' + req.query[key]).join('&') : null;
+            req.rawQuery = queryParams.length != 0 ? '?'+queryParams.map(key => key + '=' + req.query[key]).join('&') : '';
 
             if(!this.adminPassword) {
                 // redirect away from login page if authentication diabled
