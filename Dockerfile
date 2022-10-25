@@ -1,6 +1,7 @@
 FROM alpine:latest
 
-RUN apk add --no-cache nodejs npm tzdata arp-scan python3 g++ make \
+RUN apk add --no-cache nodejs npm tzdata arp-scan python3 py3-pip g++ make \
+    && pip install --no-cache-dir apprise \
     && mkdir /data
 
 COPY . /app
