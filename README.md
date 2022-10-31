@@ -59,9 +59,7 @@ For all available options see [docker-compose.yml](https://github.com/1RandomDev
 | WEBUI_PORT | Port of the webinterface. | 8484 |
 | WEBUI_PASSWORD | Password for accessing the webinterface. | none |
 | WEBUI_JWT_KEY | Key for generating login tokens (JWT). Should be set to a long random string. If kept empty sessions won't be saved across restarts. | random generated |
-| GOTIFY_URL | URL of the Gotify server used for notifications. | none |
-| GOTIFY_TOKEN | Access token for Gotify server. | none |
-| GOTIFY_PRIORITY | Message priority for Gotify. | 5 |
+| APPRISE_URL | URL for prefered notification service. See [list of supported services](https://github.com/caronc/apprise#supported-notifications). | none |
 | DATABASE_FILE | Path to the database file. | /data/data.db |
 
 ## Resources
