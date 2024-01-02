@@ -2,7 +2,7 @@ const childProcess = require('child_process');
 
 async function scanNetwork(interface) {
     return new Promise((resolve, reject) => {
-        const arpscan = childProcess.spawn('arp-scan', ['-glNx', '-I', interface, '-O', './macvendor.txt']);
+        const arpscan = childProcess.spawn('arp-scan', ['-glNx', '-I', interface]);
        
         let buffer = '', errbuffer = '';
         arpscan.stdout.on('data', data => buffer += data);
