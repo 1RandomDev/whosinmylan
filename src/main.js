@@ -47,6 +47,7 @@ class Main {
             appriseUrl: process.env.APPRISE_URL,
 
             webuiUrl: process.env.WEBUI_URL,
+            webuiHost: process.env.WEBUI_HOST || '0.0.0.0',
             webuiPort: process.env.WEBUI_PORT || 8484,
             webuiPassword: process.env.WEBUI_PASSWORD,
             webuiJwtKey: process.env.WEBUI_JWT_KEY
@@ -55,7 +56,7 @@ class Main {
         this.database = new Database(this.config.databaseFile);
         this.apprise = new Apprise(this.config.appriseUrl);
     
-        this.webinterface = new Webinterface(this.config.webuiPort, this.config.webuiPassword, this.config.webuiJwtKey, this);
+        this.webinterface = new Webinterface(this.config.webuiHost, this.config.webuiPort, this.config.webuiPassword, this.config.webuiJwtKey, this);
         this.webinterface.start();
         
         this.updateDeviceList();

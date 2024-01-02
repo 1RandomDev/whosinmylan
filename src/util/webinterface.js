@@ -6,7 +6,8 @@ const crypto = require('crypto');
 const CSV = require('csv-string');
 
 class Webinterface {
-    constructor(port, adminPassword, jwtKey, main) {
+    constructor(host, port, adminPassword, jwtKey, main) {
+        this.host = host;
         this.port = port;
         this.adminPassword = adminPassword;
         this.jwtKey = jwtKey;
@@ -232,7 +233,7 @@ class Webinterface {
             res.clearCookie('token').end();
         });
 
-        this.app.listen(this.port, () => {
+        this.app.listen(this.port, this.host, () => {
             console.log('Started webinterface on port '+this.port);
         });
     }

@@ -53,10 +53,11 @@ For all available options see [docker-compose.yml](https://github.com/1RandomDev
 ## Configuration
 | Variable | Description | Default |
 | -------- | ----------- | ------- |
-| INTERFACE | Interface to scan. Can be one or more, separated by space. Currently `docker0` is not allowed, as arp-scan wouldn't work with it. | eth0 |
+| INTERFACE | Network interface to scan. | eth0 |
 | SCAN_INTERVAL | Time between scans in sconds. | 60 |
 | WEBUI_URL | URL of the webinterface which is used for things like links in notifications. | none |
 | WEBUI_PORT | Port of the webinterface. | 8484 |
+| WEBUI_HOST | Network interface through which the webinterface should be accessible. | 0.0.0.0 |
 | WEBUI_PASSWORD | Password for accessing the webinterface. | none |
 | WEBUI_JWT_KEY | Key for generating login tokens (JWT). Should be set to a long random string. If kept empty sessions won't be saved across restarts. | random generated |
 | APPRISE_URL | URL for prefered notification service. See [list of supported services](https://github.com/caronc/apprise#supported-notifications). | none |
