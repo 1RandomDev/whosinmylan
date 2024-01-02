@@ -175,15 +175,16 @@ class Webinterface {
         });
         this.app.get('/api/device', (req, res) => {
             const devices = this.main.database.getAllDevices();
+            const response = {online: [], offline: []};
             const now = Date.now();
             devices.forEach(device => {
-                if(device.last_seen == -1) {
-                    device.online = false;
+                if(device.last_seen != -1 && device.last_seen + this.main.config.scanInterval*3 > now) {
+                    response.online.push(device);
                 } else {
-                    device.online = device.last_seen + this.main.config.scanInterval*3 > now;
+                    response.offline.push(device);
                 }
             });
-            res.json(devices);
+            res.json(response);
         });
         this.app.post('/api/device', (req, res) => {
             const data = req.body;

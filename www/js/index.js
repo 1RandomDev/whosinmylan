@@ -19,36 +19,37 @@ function updateDevices() {
         if (this.readyState != 4 || this.status != 200) return;
 
         devices = JSON.parse(this.responseText);
+        devices.online = devices.online.sort((a, b) => ip2int(a.ip) - ip2int(b.ip));
+        devices.offline = devices.offline.sort((a, b) => b.last_seen - a.last_seen);
         tableOnline.innerHTML = '';
         tableOffline.innerHTML = '';
 
-        devices.forEach(device => {
-            if(device.online) {
-                const deviceElement = document.createElement('template');
-                deviceElement.innerHTML =
-                    `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
-                        <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
-                        <td>${device.mac.toUpperCase()}</td>
-                        <td>${device.ip}</td>
-                        <td>${device.hw}</td>
-                        <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
-                        <td><button class="btn btn-danger p-2" onclick="deleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
-                    </tr>`;
-                tableOnline.appendChild(deviceElement.content.firstChild);
-            } else {
-                const deviceElement = document.createElement('template');
-                deviceElement.innerHTML =
-                    `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
-                        <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
-                        <td>${device.mac.toUpperCase()}</td>
-                        <td>${device.ip}</td>
-                        <td>${device.hw}</td>
-                        <td>${device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)}</td>
-                        <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
-                        <td><button class="btn btn-danger p-2" onclick="deleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
-                    </tr>`;
-                tableOffline.appendChild(deviceElement.content.firstChild);
-            }
+        devices.online.forEach(device => {
+            const deviceElement = document.createElement('template');
+            deviceElement.innerHTML =
+                `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
+                    <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
+                    <td><a target="_blank" href="http://${device.ip}/">${device.ip}</a></td>
+                    <td>${device.mac.toUpperCase()}</td>
+                    <td>${device.hw}</td>
+                    <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
+                    <td><button class="btn btn-danger p-2" onclick="deleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
+                </tr>`;
+            tableOnline.appendChild(deviceElement.content.firstChild);
+        });
+        devices.offline.forEach(device => {
+            const deviceElement = document.createElement('template');
+            deviceElement.innerHTML =
+                `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
+                    <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
+                    <td>${device.ip}</td>
+                    <td>${device.mac.toUpperCase()}</td>
+                    <td>${device.hw}</td>
+                    <td>${device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)}</td>
+                    <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
+                    <td><button class="btn btn-danger p-2" onclick="deleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
+                </tr>`;
+            tableOffline.appendChild(deviceElement.content.firstChild);
         });
         if(highlightDevice) {
             const element = document.querySelector(`.device[data-id="${highlightDevice}"]`);
@@ -159,3 +160,7 @@ logoutBtn.addEventListener('click', function(event) {
     req.open('POST', '/api/logout');
     req.send();
 });
+
+function ip2int(ip) {
+    return ip.split('.').reduce((acc, byte) => acc + byte.padStart(3, 0), '');
+}
