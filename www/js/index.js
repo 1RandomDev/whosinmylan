@@ -65,7 +65,8 @@ setInterval(() => {
 }, 60000);
 
 function toggleKnown(button, deviceId) {
-    const device = devices.find(dev => dev.id == deviceId);
+    let device = devices.online.find(dev => dev.id == deviceId);
+    if(!device) device = devices.offline.find(dev => dev.id == deviceId);
     device.known = 1-device.known;
 
     updateDevice(device, 'POST', () => {
@@ -77,7 +78,8 @@ function toggleKnown(button, deviceId) {
 }
 
 function deleteDevice(button, deviceId) {
-    const device = devices.find(dev => dev.id == deviceId);
+    let device = devices.online.find(dev => dev.id == deviceId);
+    if(!device) device = devices.offline.find(dev => dev.id == deviceId);
 
     updateDevice(device, 'DELETE', () => {
         button.parentElement.parentElement.remove();
@@ -85,7 +87,8 @@ function deleteDevice(button, deviceId) {
 }
 
 function editDevice(input, deviceId, value) {
-    const device = devices.find(dev => dev.id == deviceId);
+    let device = devices.online.find(dev => dev.id == deviceId);
+    if(!device) device = devices.offline.find(dev => dev.id == deviceId);
     device[value] = input.value;
 
     updateDevice(device, 'POST');
