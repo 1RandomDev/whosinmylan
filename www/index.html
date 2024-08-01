@@ -25,9 +25,10 @@
     <body>
         <div class="container mt-5">
             <div class="clearfix float-end">
+                <a href="" class="ms-2" data-bs-toggle="modal" data-bs-target="#settingsModal">Settings</a>
                 <a href="" id="logoutBtn" class="ms-2 invisible">Logout</a>
             </div>
-            <h2>Online</h2>
+            <h2>Online (<span id="numDevicesOnline"></span>)</h2>
             <table id="tableOnline" class="table table-striped mb-5">
                 <thead>
                     <tr>
@@ -46,7 +47,7 @@
                 <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#addDeviceModal">Add Offline Device</button>
                 <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#exportImportModal">Export/Import Devices</button>
             </div>
-            <h2>Offline</h2>
+            <h2>Offline (<span id="numDevicesOffline"></span>)</h2>
             <table id="tableOffline" class="table table-striped">
                 <thead>
                     <tr>
@@ -130,7 +131,59 @@
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>
             </div>
-        </div>          
+        </div>
+
+        <div class="modal fade" tabindex="-1" id="settingsModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Settings</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                            <label class="form-label">MAC address format</label>
+                            <select class="form-select settingsOption" data-settings-id="macAddressFormat">
+                                <option value="1">AA:AA:AA:11:11:11</option>
+                                <option value="2">aa:aa:aa:11:11:11</option>
+                                <option value="3">AA-AA-AA-11-11-11</option>
+                            </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" tabindex="-1" id="deleteModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete device</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure to delete the device <b class="deviceName"></b>?<br><br>
+                        IP: <b class="deviceIp"></b><br>
+                        MAC: <b class="deviceMac"></b>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger deleteBtn" data-bs-dismiss="modal">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="deleteNotification" class="toast align-items-center text-bg-danger border-0">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Deleted device <b class="deviceName"></b>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
 
         <div class="fixed-bottom mb-3 ms-3">
             <a href="https://github.com/1RandomDev/whosinmylan">GitHub</a>
