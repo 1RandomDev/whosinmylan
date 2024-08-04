@@ -53,7 +53,7 @@ function updateDevices() {
                     <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
                     <td class="w-25">${device.hw}</td>
                     <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
-                    <td><button class="btn btn-danger p-2" onclick="deleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
+                    <td><button class="btn btn-danger p-2" onclick="promptDeleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
                 </tr>`;
             tableOnline.appendChild(deviceElement.content.firstChild);
         });
