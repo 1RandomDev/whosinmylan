@@ -70,6 +70,10 @@ class Webinterface {
         });
         this.app.use(express.static('./www'));
 
+        this.app.get('/api/rescan', async (req, res) => {
+            const newDeviceCount = await this.main.updateDeviceList();
+            res.json({newDeviceCount});
+        });
         this.app.get('/api/export/devices.csv', (req, res) => {
             const devices = this.main.database.getAllDevices();
             let csv = [['Name', 'Known', 'Mac', 'Ip', 'Hardware', 'Last seen']];

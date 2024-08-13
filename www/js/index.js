@@ -8,13 +8,14 @@ const addDeviceForm = document.querySelector('#addDeviceModal form');
 const addDeviceFormButton = document.querySelector('#addDeviceModal form button[type="submit"]');
 const exportImportModal = document.getElementById('exportImportModal');
 const inputDevicesUpload = document.getElementById('inputDevicesUpload');
-const importSuccessNotification = document.getElementById('importSuccessNotification');
 const settingsModal = document.getElementById('settingsModal');
 const deleteModal = document.getElementById('deleteModal');
-const deleteNotification = document.getElementById('deleteNotification');
+const toastContainer = document.getElementById('toastContainer');
+const rescanBtn = document.getElementById('rescanBtn');
 const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
 let devices;
 let deleteDevice, deleteDeviceEntry;
+let scanInProgress;
 
 const urlParams = new URLSearchParams(window.location.search);
 const highlightDevice = urlParams.get('highlight');
@@ -110,8 +111,10 @@ function promptDeleteDevice(button, deviceId) {
 deleteModal.querySelector('.deleteBtn').addEventListener('click', () => {
     updateDevice(deleteDevice, 'DELETE', () => {
         deleteDeviceEntry.remove();
-        deleteNotification.querySelector('.deviceName').innerText = deleteDevice.name;
-        new bootstrap.Toast(deleteNotification).show();
+        showToast({
+            message: `Deleted device <b>${deleteDevice.name}</b>`,
+            type: 'danger'
+        });
     });
 });
 
@@ -170,9 +173,10 @@ inputDevicesUpload.addEventListener('change', () => {
         bootstrap.Modal.getInstance(exportImportModal).hide();
 
         const stats = JSON.parse(this.responseText);
-        importSuccessNotification.querySelector('.newDevices').innerText = stats.imported;
-        importSuccessNotification.querySelector('.updatedDevices').innerText = stats.updated;
-        new bootstrap.Toast(importSuccessNotification).show();
+        showToast({
+            message: `Import complete. New: <b>${stats.imported}</b> Updated: <b>${stats.updated}</b>`,
+            type: 'success'
+        });
     };
     req.open('POST', '/api/import/devices');
     req.send(formData);
@@ -180,7 +184,26 @@ inputDevicesUpload.addEventListener('change', () => {
     inputDevicesUpload.value = '';
 });
 
-if(document.cookie.includes('token=')) logoutBtn.classList.remove('invisible');
+rescanBtn.addEventListener('click', async () => {
+    if(scanInProgress) return;
+    scanInProgress = true;
+    rescanBtn.querySelector('.spinner').classList.remove('d-none');
+    try {
+        let res = await fetch('/api/rescan');
+        if(!res.ok) throw new Error('Request failed with status: '+res.status);
+        res = await res.json();
+        showToast({
+            message: `Scan complete, found <b>${res.newDeviceCount}</b> new devices`,
+            type: 'success'
+        });
+    } catch(err) {
+        console.error(err);
+    }
+    scanInProgress = false;
+    rescanBtn.querySelector('.spinner').classList.add('d-none');
+});
+
+if(document.cookie.includes('token=')) logoutBtn.classList.remove('d-none');
 logoutBtn.addEventListener('click', function(event) {
     event.preventDefault();
 
@@ -206,4 +229,21 @@ function formatMacAddress(mac) {
         case "3":
             return mac.toUpperCase().replace(/:/g, '-');
     }
+}
+
+function showToast(data) {
+    let toastElement = document.createElement('template');
+    toastElement.innerHTML =
+        `<div class="toast align-items-center border-0 mb-2 text-bg-${data.type || 'secondary'}">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${data.message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>`;
+    toastElement = toastElement.content.firstChild;
+    toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
+    toastContainer.appendChild(toastElement);
+    new bootstrap.Toast(toastElement).show();
 }

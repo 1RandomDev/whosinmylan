@@ -8,7 +8,7 @@ class Main {
     async updateDeviceList() {
         console.log('Scanning for new devices...');
 
-        let foundDevices;
+        let foundDevices, newDeviceCount = 0;
         try {
             foundDevices = await arpscan.scanNetwork(this.config.interface);
         } catch(err) {
@@ -34,8 +34,10 @@ class Main {
                 const message = `MAC: ${foundDevice.mac}, IP: ${foundDevice.ip}, Hw: ${foundDevice.hw}`;
                 console.log('Found new device: '+message);
                 this.apprise.sendNotification('New Network Device', message + (this.config.webuiUrl ? `\n${this.config.webuiUrl}/?highlight=${deviceId}` : null));
+                newDeviceCount++;
             }
         });
+        return newDeviceCount;
     }
     
     start() {
