@@ -5,45 +5,50 @@ const Webinterface = require('./util/webinterface');
 require('dotenv').config()
 
 class Main {
-    async updateDeviceList() {
-        console.log('Scanning for new devices...');
-
-        let foundDevices, newDeviceCount = 0;
-        try {
-            foundDevices = await arpscan.scanNetwork(this.config.interface);
-        } catch(err) {
-            console.error('Error while scanning network: '+err);
-            return;
-        }
-    
+    async updateDeviceList(interfaceFilter) {
         const savedDevices = this.database.getAllDevices();
-    
-        foundDevices.forEach(async foundDevice => {
-            const savedDevice = savedDevices.find(dev => dev.mac == foundDevice.mac);
-            if(savedDevice) {
-                savedDevice.hw = foundDevice.hw;
-                savedDevice.ip = foundDevice.ip;
-                savedDevice.last_seen = Date.now();
-                this.database.updateDevice(savedDevice);
-            } else {
-                foundDevice.name = '';
-                foundDevice.known = 0;
-                foundDevice.last_seen = Date.now();
-                const deviceId = this.database.saveDevice(foundDevice).id;
-    
-                const message = `MAC: ${foundDevice.mac}, IP: ${foundDevice.ip}, Hw: ${foundDevice.hw}`;
-                console.log('Found new device: '+message);
-                this.apprise.sendNotification('New Network Device', message + (this.config.webuiUrl ? `\n${this.config.webuiUrl}/?highlight=${deviceId}` : null));
-                newDeviceCount++;
+        let foundDevices = [], newDeviceCount = 0;
+
+        for(let curInterface of this.config.interfaces) {
+            if(interfaceFilter && curInterface != interfaceFilter) continue;
+
+            console.log(`Scanning interface ${curInterface}...`);
+            try {
+                foundDevices = await arpscan.scanNetwork(curInterface);
+            } catch(err) {
+                console.error(`Error while scanning interface ${curInterface}: ${err}`);
+                return;
             }
-        });
+        
+            foundDevices.forEach(async foundDevice => {
+                const savedDevice = savedDevices.find(dev => dev.if == curInterface && dev.mac == foundDevice.mac);
+                if(savedDevice) {
+                    savedDevice.hw = foundDevice.hw;
+                    savedDevice.ip = foundDevice.ip;
+                    savedDevice.last_seen = Date.now();
+                    this.database.updateDevice(savedDevice);
+                } else {
+                    foundDevice.if = curInterface;
+                    foundDevice.name = '';
+                    foundDevice.known = 0;
+                    foundDevice.last_seen = Date.now();
+                    const deviceId = this.database.saveDevice(foundDevice).id;
+        
+                    const message = `MAC: ${foundDevice.mac}, IP: ${foundDevice.ip}, Hw: ${foundDevice.hw}, If: ${curInterface}`;
+                    console.log('Found new device: '+message);
+                    this.apprise.sendNotification('New Network Device', message + (this.config.webuiUrl ? `\n${this.config.webuiUrl}/?if=${curInterface}&highlight=${deviceId}` : null));
+                    newDeviceCount++;
+                }
+            });
+        }
+
         return newDeviceCount;
     }
     
     start() {
         this.config = {
-            scanInterval: process.env.SCAN_INTERVAL*1000 || 60000,
-            interface: process.env.INTERFACE || 'eth0',
+            scanInterval: process.env.SCAN_INTERVAL*1000 || 60000, 
+            interfaces: process.env.INTERFACE.split(',').map(intf => intf.trim()) || ['eth0'],
             databaseFile: process.env.DATABASE_FILE || './data/data.db',
 
             appriseUrl: process.env.APPRISE_URL,
@@ -54,18 +59,24 @@ class Main {
             webuiPassword: process.env.WEBUI_PASSWORD,
             webuiJwtKey: process.env.WEBUI_JWT_KEY
         };
+        this.config.onlineTimeout = process.env.ONLINE_TIMEOUT || (this.config.scanInterval > 0 ? this.config.scanInterval*3 : 300000);
 
         this.database = new Database(this.config.databaseFile);
+        this.database.createNewColumns({firstInterface: this.config.interfaces[0] });
+
         this.apprise = new Apprise(this.config.appriseUrl);
     
         this.webinterface = new Webinterface(this.config.webuiHost, this.config.webuiPort, this.config.webuiPassword, this.config.webuiJwtKey, this);
         this.webinterface.start();
         
-        this.updateDeviceList();
-    
-        setInterval(() => {
-            this.updateDeviceList();
-        }, this.config.scanInterval);
+        if(this.config.scanInterval > 0) {
+            setTimeout(() => {
+                this.updateDeviceList();
+            }, 3000);
+            setInterval(() => {
+                this.updateDeviceList();
+            }, this.config.scanInterval);
+        }
     }
 }
 new Main().start();

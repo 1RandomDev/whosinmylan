@@ -12,10 +12,10 @@ const settingsModal = document.getElementById('settingsModal');
 const deleteModal = document.getElementById('deleteModal');
 const toastContainer = document.getElementById('toastContainer');
 const rescanBtn = document.getElementById('rescanBtn');
+const interfaceSelect = document.getElementById('interfaceSelect');
 const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
 let devices;
-let deleteDevice, deleteDeviceEntry;
-let scanInProgress;
+let deleteDevice, deleteDeviceEntry, scanInProgress, interfaces, selectedInterface;
 
 const urlParams = new URLSearchParams(window.location.search);
 const highlightDevice = urlParams.get('highlight');
@@ -28,11 +28,36 @@ settingsModal.querySelectorAll('.settingsOption').forEach(element => {
     element.addEventListener('change', () => {
         settings[element.dataset.settingsId] = element.value;
         window.localStorage.setItem('wiml_settings', JSON.stringify(settings));
-        updateDevices();
+        updateDeviceList();
     });
 });
 
-function updateDevices() {
+(async () => {
+    interfaces = await fetch('/api/interfaces');
+    if(!interfaces.ok) throw new Error('Request failed with status: '+res.status);
+    interfaces = await interfaces.json();
+    selectedInterface = urlParams.has('if') ? urlParams.get('if') : interfaces[0];
+    if(interfaces.length > 1) {
+        let html = '';
+        interfaces.forEach(intf => {
+            html +=
+                `<input onclick="switchInterface('${intf}');" type="radio" class="btn-check" name="ifSel" id="ifSel-${intf}" autocomplete="off" ${intf == selectedInterface ? 'checked' : ''}>
+                 <label class="btn btn-outline-warning" for="ifSel-${intf}">${intf}</label>`;
+        });
+        html +=
+            `<input onclick="switchInterface('');" type="radio" class="btn-check" name="ifSel" id="ifSel-all" autocomplete="off" ${selectedInterface == '' ? 'checked' : ''}>
+             <label class="btn btn-outline-warning" for="ifSel-all">Alle Interfaces</label>`;
+        interfaceSelect.innerHTML = html;
+        interfaceSelect.classList.remove('d-none');
+    }
+
+    updateDeviceList();
+    setInterval(() => {
+        updateDeviceList();
+    }, 60000);
+})();
+
+function updateDeviceList() {
     const req = new XMLHttpRequest();
     req.onreadystatechange = function() {
         if (this.readyState != 4 || this.status != 200) return;
@@ -77,13 +102,14 @@ function updateDevices() {
             if(element) element.scrollIntoView({block:'center'});
         }
     };
-    req.open('GET', '/api/device');
+    req.open('GET', '/api/device?if='+selectedInterface);
     req.send();
 }
-updateDevices();
-setInterval(() => {
-    updateDevices();
-}, 60000);
+
+function switchInterface(intf) {
+    selectedInterface = intf;
+    updateDeviceList();
+}
 
 function toggleKnown(button, deviceId) {
     let device = devices.online.find(dev => dev.id == deviceId);
@@ -137,11 +163,16 @@ addDeviceForm.addEventListener('submit', function(event) {
         ip: '0.0.0.0',
         hw: '-',
         last_seen: -1,
-        known: data.get('known') ? 1 : 0
+        known: data.get('known') ? 1 : 0,
+        if: selectedInterface || interfaces[0]
     }
     
     updateDevice(device, 'PUT', () => {
-        updateDevices();
+        showToast({
+            message: `Added device <b>${device.name}</b>`,
+            type: 'success'
+        });
+        updateDeviceList();
         bootstrap.Modal.getInstance(addDeviceModal).hide();
         addDeviceForm.reset();
     });
@@ -169,7 +200,7 @@ inputDevicesUpload.addEventListener('change', () => {
     req.onreadystatechange = function() {
         if (this.readyState != 4 || this.status != 200) return;
         
-        updateDevices();
+        updateDeviceList();
         bootstrap.Modal.getInstance(exportImportModal).hide();
 
         const stats = JSON.parse(this.responseText);
@@ -178,7 +209,7 @@ inputDevicesUpload.addEventListener('change', () => {
             type: 'success'
         });
     };
-    req.open('POST', '/api/import/devices');
+    req.open('POST', '/api/import/devices?if='+selectedInterface);
     req.send(formData);
 
     inputDevicesUpload.value = '';
@@ -189,13 +220,14 @@ rescanBtn.addEventListener('click', async () => {
     scanInProgress = true;
     rescanBtn.querySelector('.spinner').classList.remove('d-none');
     try {
-        let res = await fetch('/api/rescan');
+        let res = await fetch('/api/rescan?if='+selectedInterface);
         if(!res.ok) throw new Error('Request failed with status: '+res.status);
         res = await res.json();
         showToast({
             message: `Scan complete, found <b>${res.newDeviceCount}</b> new devices`,
             type: 'success'
         });
+        updateDeviceList();
     } catch(err) {
         console.error(err);
     }

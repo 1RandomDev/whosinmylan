@@ -71,14 +71,15 @@ class Webinterface {
         this.app.use(express.static('./www'));
 
         this.app.get('/api/rescan', async (req, res) => {
-            const newDeviceCount = await this.main.updateDeviceList();
+            const newDeviceCount = await this.main.updateDeviceList(req.query.if);
             res.json({newDeviceCount});
         });
         this.app.get('/api/export/devices.csv', (req, res) => {
-            const devices = this.main.database.getAllDevices();
-            let csv = [['Name', 'Known', 'Mac', 'Ip', 'Hardware', 'Last seen']];
+            const devices = req.query.if ? this.main.database.getDevicesByInterface(req.query.if) : this.main.database.getAllDevices();
+            let csv = [['Name', 'Known', 'Mac', 'Ip', 'Hardware', 'Last seen', 'Interface']];
             devices.forEach(device => {
-                csv.push([device.name, device.known ? 'true' : 'false', device.mac, device.ip, device.hw, device.last_seen == -1 ? 'Never' : new Date(device.last_seen).toISOString()]);
+                const row = [device.name, device.known ? 'true' : 'false', device.mac, device.ip, device.hw, device.last_seen == -1 ? 'Never' : new Date(device.last_seen).toISOString(), device.if];
+                csv.push(row);
             });
             csv = CSV.stringify(csv);
 
@@ -86,11 +87,12 @@ class Webinterface {
             res.send(csv);
         });
         this.app.get('/api/export/devices.json', (req, res) => {
-            const devices = this.main.database.getAllDevices();
+            const devices = req.query.if ? this.main.database.getDevicesByInterface(req.query.if) : this.main.database.getAllDevices();
             devices.forEach(device => {
                 device.id = undefined;
                 device.known = device.known ? true : false;
                 device.last_seen = device.last_seen == -1 ? 'Never' : new Date(device.last_seen).toISOString();
+                device.if = device.if
             });
 
             res.setHeader('Content-Type', 'application/json');
@@ -113,20 +115,23 @@ class Webinterface {
                             if(!importDevice.mac) return;
                             if(importDevice.known != null) importDevice.known = importDevice.known ? 1 : 0;
                             if(importDevice.last_seen != null) importDevice.last_seen = importDevice.last_seen == 'Never' ? -1 : Date.parse(importDevice.last_seen);
+                            importDevice.if = req.query.if || importDevice.if || this.main.config.interfaces[0];
 
-                            let foundDevice = devices.find(dev => dev.mac == importDevice.mac);
+                            let foundDevice = devices.find(dev => dev.if == importDevice.if && dev.mac == importDevice.mac);
                             if(foundDevice) {
-                                foundDevice = {...foundDevice, ...importDevice};
+                                foundDevice = Object.assign(foundDevice, importDevice);
+                                console.log(foundDevice)
                                 this.main.database.updateDevice(foundDevice);
                                 stats.updated++;
                             } else {
-                                importDevice = {...{
+                                importDevice = Object.assign({
                                     name: '',
                                     ip: '0.0.0.0',
                                     hw: '-',
                                     last_seen: -1,
-                                    known: 0
-                                }, ...importDevice};
+                                    known: 0,
+                                    if: this.main.config.interfaces[0]
+                                }, importDevice);
                                 this.main.database.saveDevice(importDevice);
                                 stats.imported++;
                             }
@@ -143,25 +148,28 @@ class Webinterface {
                                 mac: importDevice[2],
                                 ip: importDevice[3],
                                 hw: importDevice[4],
-                                last_seen: importDevice[5]
-                            }
+                                last_seen: importDevice[5],
+                                if: importDevice[6]
+                            };
                             if(!importDevice.mac) return;
                             if(importDevice.known != null) importDevice.known = importDevice.known ? 1 : 0;
                             if(importDevice.last_seen != null) importDevice.last_seen = importDevice.last_seen == 'Never' ? -1 : Date.parse(importDevice.last_seen);
+                            importDevice.if = req.query.if || importDevice.if || this.main.config.interfaces[0];
 
-                            let foundDevice = devices.find(dev => dev.mac == importDevice.mac);
+                            let foundDevice = devices.find(dev => dev.if == importDevice.if && dev.mac == importDevice.mac);
                             if(foundDevice) {
-                                foundDevice = {...foundDevice, ...importDevice};
+                                foundDevice = Object.assign(foundDevice, importDevice);
                                 this.main.database.updateDevice(foundDevice);
                                 stats.updated++;
                             } else {
-                                importDevice = {...{
+                                importDevice = Object.assign({
                                     name: '',
                                     ip: '0.0.0.0',
                                     hw: '-',
                                     last_seen: -1,
-                                    known: 0
-                                }, ...importDevice};
+                                    known: 0,
+                                    if: this.main.config.interfaces[0]
+                                }, importDevice);
                                 this.main.database.saveDevice(importDevice);
                                 stats.imported++;
                             }
@@ -178,11 +186,11 @@ class Webinterface {
             }
         });
         this.app.get('/api/device', (req, res) => {
-            const devices = this.main.database.getAllDevices();
+            const devices = req.query.if ? this.main.database.getDevicesByInterface(req.query.if) : this.main.database.getAllDevices();
             const response = {online: [], offline: []};
             const now = Date.now();
             devices.forEach(device => {
-                if(device.last_seen != -1 && device.last_seen + this.main.config.scanInterval*3 > now) {
+                if(device.last_seen != -1 && device.last_seen + this.main.config.onlineTimeout > now) {
                     response.online.push(device);
                 } else {
                     response.offline.push(device);
@@ -219,6 +227,10 @@ class Webinterface {
                 console.error(err);
                 res.status(400).end();
             }
+        });
+
+        this.app.get('/api/interfaces', (req, res) => {
+            res.json(this.main.config.interfaces);
         });
 
         this.app.post('/api/login', (req, res) => {

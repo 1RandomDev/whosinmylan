@@ -29,11 +29,13 @@
                 <a href="" id="logoutBtn" class="ms-2 d-none">Logout</a>
             </div><br>
 
-            <div class="mt-3">
+            <div class="btn-group d-none" id="interfaceSelect"></div>
+
+            <div class="mt-5">
                 <div class="btn-group clearfix float-end mt-2">
                     <button class="btn btn-outline-info" id="rescanBtn">
                         <span class="spinner spinner-border spinner-border-sm d-none"></span>
-                        <span role="status">Scan now</span>                      
+                        <span role="status">Scan now</span>
                     </button>
                 </div>
                 <h2>Online (<span id="numDevicesOnline"></span>)</h2>
@@ -96,7 +98,7 @@
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input default-checkbox" id="addDeviceFormKnown" name="known">
                                 <label class="form-check-label text-white" for="addDeviceFormKnown">Known</label>
-                            </div>                            
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-primary" disabled>Add Device</button>
@@ -115,8 +117,8 @@
                     </div>
                     <div class="modal-body">
                         <div class="input-group">
-                            <a class="btn btn-outline-success" href="/api/export/devices.json" download>Export JSON</a>
-                            <a class="btn btn-outline-success" href="/api/export/devices.csv" download>Export CSV</a>
+                            <a class="btn btn-outline-success" href="/api/export/devices.json" onclick="this.href = '/api/export/devices.json?if='+selectedInterface;" download>Export JSON</a>
+                            <a class="btn btn-outline-success" href="/api/export/devices.csv" onclick="this.href = '/api/export/devices.csv?if='+selectedInterface;" download>Export CSV</a>
                         </div>
 
                         <div class="mt-3">
