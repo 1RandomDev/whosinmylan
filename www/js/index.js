@@ -69,12 +69,10 @@ settingsModal.querySelectorAll('.settingsOption').forEach(element => {
     }, 60000);
 })();
 
-function updateDeviceList() {
-    const req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-        if (this.readyState != 4 || this.status != 200) return;
-
-        devices = JSON.parse(this.responseText);
+async function updateDeviceList() {
+    const res = await fetch('/api/device?if='+selectedInterface);
+    if(res.ok) {
+        devices = await res.json();
         devices.online = devices.online.sort((a, b) => ip2int(a.ip) - ip2int(b.ip));
         devices.offline = devices.offline.sort((a, b) => b.last_seen - a.last_seen);
         tableOnline.innerHTML = '';
@@ -113,9 +111,7 @@ function updateDeviceList() {
             const element = document.querySelector(`.device[data-id="${highlightDevice}"]`);
             if(element) element.scrollIntoView({block:'center'});
         }
-    };
-    req.open('GET', '/api/device?if='+selectedInterface);
-    req.send();
+    }
 }
 
 function switchInterface(intf) {
@@ -123,17 +119,16 @@ function switchInterface(intf) {
     updateDeviceList();
 }
 
-function toggleKnown(button, deviceId) {
+async function toggleKnown(button, deviceId) {
     let device = devices.online.find(dev => dev.id == deviceId);
     if(!device) device = devices.offline.find(dev => dev.id == deviceId);
     device.known = 1-device.known;
 
-    updateDevice(device, 'POST', () => {
-        button.classList.remove('btn-success');
-        button.classList.remove('btn-warning');
-        button.classList.add(device.known ? 'btn-success' : 'btn-warning');
-        button.innerText = device.known ? 'Yes' : 'No';
-    });
+    await updateDevice(device, 'POST');
+    button.classList.remove('btn-success');
+    button.classList.remove('btn-warning');
+    button.classList.add(device.known ? 'btn-success' : 'btn-warning');
+    button.innerText = device.known ? 'Yes' : 'No';
 }
 
 function promptDeleteDevice(button, deviceId) {
@@ -146,13 +141,12 @@ function promptDeleteDevice(button, deviceId) {
     deleteModal.querySelector('.deviceMac').innerText = deleteDevice.mac;
     new bootstrap.Modal(deleteModal).show();
 }
-deleteModal.querySelector('.deleteBtn').addEventListener('click', () => {
-    updateDevice(deleteDevice, 'DELETE', () => {
-        deleteDeviceEntry.remove();
-        showToast({
-            message: `Deleted device <b>${deleteDevice.name}</b>`,
-            type: 'danger'
-        });
+deleteModal.querySelector('.deleteBtn').addEventListener('click', async () => {
+    await updateDevice(deleteDevice, 'DELETE');
+    deleteDeviceEntry.remove();
+    showToast({
+        message: `Deleted device <b>${deleteDevice.name}</b>`,
+        type: 'danger'
     });
 });
 
@@ -164,7 +158,7 @@ function editDevice(input, deviceId, value) {
     updateDevice(device, 'POST');
 }
 
-addDeviceForm.addEventListener('submit', function(event) {
+addDeviceForm.addEventListener('submit', async event => {
     event.preventDefault();
     if(!addDeviceForm.checkValidity()) return;
 
@@ -179,52 +173,48 @@ addDeviceForm.addEventListener('submit', function(event) {
         if: selectedInterface || interfaces[0]
     }
     
-    updateDevice(device, 'PUT', () => {
-        showToast({
-            message: `Added device <b>${device.name}</b>`,
-            type: 'success'
-        });
-        updateDeviceList();
-        bootstrap.Modal.getInstance(addDeviceModal).hide();
-        addDeviceForm.reset();
+    await updateDevice(device, 'PUT');
+    showToast({
+        message: `Added device <b>${device.name}</b>`,
+        type: 'success'
     });
+    bootstrap.Modal.getInstance(addDeviceModal).hide();
+    addDeviceForm.reset();
+    updateDeviceList();
 });
 addDeviceForm.addEventListener('input', () => {
     addDeviceFormButton.disabled = !addDeviceForm.checkValidity();
 });
 
-function updateDevice(device, method, cb) {
-    const req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-        if (this.readyState != 4 || this.status != 200) return;
-        if(cb) cb();
-    };
-    req.open(method, '/api/device');
-    req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    req.send(JSON.stringify(device));
+async function updateDevice(device, method) {
+    const res = await fetch('/api/device', {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(device)
+    });
+    if(!res.ok) throw new Error('Unable to update device.');
 }
 
-inputDevicesUpload.addEventListener('change', () => {
+inputDevicesUpload.addEventListener('change', async () => {
     const formData = new FormData();
     formData.append('file', inputDevicesUpload.files[0]);
 
-    const req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-        if (this.readyState != 4 || this.status != 200) return;
-        
+    let res = await fetch('/api/import/devices?if='+selectedInterface, {
+        method: 'POST',
+        body: formData
+    });
+    if(res.ok) {
+        res = await res.json();
         updateDeviceList();
         bootstrap.Modal.getInstance(exportImportModal).hide();
-
-        const stats = JSON.parse(this.responseText);
+        inputDevicesUpload.value = '';
         showToast({
-            message: `Import complete. New: <b>${stats.imported}</b> Updated: <b>${stats.updated}</b>`,
+            message: `Import complete. New: <b>${res.imported}</b> Updated: <b>${res.updated}</b>`,
             type: 'success'
         });
-    };
-    req.open('POST', '/api/import/devices?if='+selectedInterface);
-    req.send(formData);
-
-    inputDevicesUpload.value = '';
+    }
 });
 
 rescanBtn.addEventListener('click', async () => {
@@ -248,16 +238,14 @@ rescanBtn.addEventListener('click', async () => {
 });
 
 if(document.cookie.includes('token=')) logoutBtn.classList.remove('d-none');
-logoutBtn.addEventListener('click', function(event) {
+logoutBtn.addEventListener('click', async event => {
     event.preventDefault();
-
-    const req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-        if (this.readyState != 4 || this.status != 200) return;
+    const res = await fetch('/api/logout', {
+        method: 'POST'
+    });
+    if(res.ok) {
         window.location.replace('/login.html');
-    };
-    req.open('POST', '/api/logout');
-    req.send();
+    }
 });
 
 function ip2int(ip) {
