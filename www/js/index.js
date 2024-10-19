@@ -25,6 +25,18 @@ let settings = {
 
 Object.assign(settings, JSON.parse(window.localStorage.getItem('wiml_settings')));
 settingsModal.querySelectorAll('.settingsOption').forEach(element => {
+    const currentValue = settings[element.dataset.settingsId];
+    if(currentValue) {
+        switch(element.nodeName) {
+            case 'SELECT':
+                element.querySelectorAll('option').forEach(option => {
+                    if(option.value == currentValue) option.selected = true;
+                });
+                break;
+            default:
+                element.value = currentValue;
+        }
+    }
     element.addEventListener('change', () => {
         settings[element.dataset.settingsId] = element.value;
         window.localStorage.setItem('wiml_settings', JSON.stringify(settings));
