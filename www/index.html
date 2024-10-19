@@ -2,6 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Whos In My LAN</title>
 
         <link rel="icon" type="image/png" href="img/icon.png">
@@ -20,6 +21,14 @@
             .highlight > * {
                 background-color: rgb(243, 156, 18, 0.3) !important;
             }
+            .device .name {
+                min-width: 200px;
+            }
+            @media only screen and (max-width: 510px) {
+                .offlineDeviceButtons {
+                    float: unset !important;
+                }
+            }
         </style>
     </head>
     <body>
@@ -32,46 +41,50 @@
             <div class="btn-group d-none" id="interfaceSelect"></div>
 
             <div class="mt-5">
-                <div class="btn-group clearfix float-end mt-2">
+                <h2 class="float-start">Online (<span id="numDevicesOnline"></span>)</h2>
+                <div class="btn-group float-end">
                     <button class="btn btn-outline-info" id="rescanBtn">
                         <span class="spinner spinner-border spinner-border-sm d-none"></span>
                         <span role="status">Scan now</span>
                     </button>
                 </div>
-                <h2>Online (<span id="numDevicesOnline"></span>)</h2>
-                <table id="tableOnline" class="table table-striped mb-5">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Ip</th>
-                            <th>Mac</th>
-                            <th>Hardware</th>
-                            <th>Known</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="w-100 overflow-x-scroll mb-5">
+                    <table id="tableOnline" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Ip</th>
+                                <th>Mac</th>
+                                <th>Hardware</th>
+                                <th>Known</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
     
-                <div class="btn-group clearfix float-end mt-2">
+                <h2 class="float-start">Offline (<span id="numDevicesOffline"></span>)</h2>
+                <div class="btn-group float-end offlineDeviceButtons">
                     <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#addDeviceModal">Add Offline Device</button>
                     <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#exportImportModal">Export/Import Devices</button>
                 </div>
-                <h2>Offline (<span id="numDevicesOffline"></span>)</h2>
-                <table id="tableOffline" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Ip</th>
-                            <th>Mac</th>
-                            <th>Hardware</th>
-                            <th>Last seen</th>
-                            <th>Known</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="w-100 overflow-x-scroll mb-5">
+                    <table id="tableOffline" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Ip</th>
+                                <th>Mac</th>
+                                <th>Hardware</th>
+                                <th>Last seen</th>
+                                <th>Known</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -175,10 +188,6 @@
         </div>
 
         <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-
-        <div class="fixed-bottom mb-3 ms-3">
-            <a href="https://github.com/1RandomDev/whosinmylan">GitHub</a>
-        </div>
 
         <script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.min.js"></script>

@@ -74,7 +74,7 @@ function updateDeviceList() {
             const deviceElement = document.createElement('template');
             deviceElement.innerHTML =
                 `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
-                    <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
+                    <td><input class="form-control name" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
                     <td class="text-nowrap"><a target="_blank" href="http://${device.ip}/">${device.ip}</a></td>
                     <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
                     <td class="w-25">${device.hw}</td>
@@ -87,7 +87,7 @@ function updateDeviceList() {
             const deviceElement = document.createElement('template');
             deviceElement.innerHTML =
                 `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
-                    <td><input class="form-control" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
+                    <td><input class="form-control name" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
                     <td class="text-nowrap">${device.ip}</td>
                     <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
                     <td class="w-25">${device.hw}</td>
