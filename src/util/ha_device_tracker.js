@@ -65,10 +65,10 @@ class HADeviceTracker {
         if(!this.config.trackedDevices.toLowerCase().includes(mac)) return;
 
         const devId = mac.replace(/:/g, '');
-        this.client.publish(`${this.topicPrefix}/${devId}/state`, 'home');
+        this.client.publish(`${this.topicPrefix}/${devId}/state`, 'home', { retain: true });
         clearTimeout(this.timers[devId]);
         this.timers[devId] = setTimeout(() => {
-            this.client.publish(`${this.topicPrefix}/${devId}/state`, 'not_home');
+            this.client.publish(`${this.topicPrefix}/${devId}/state`, 'not_home', { retain: true });
         }, this.main.config.onlineTimeout);
     }
 }
