@@ -15,12 +15,11 @@
     "url": "https://github.com/1RandomDev/whosinmylan.git"
   },
   "dependencies": {
-    "axios": "^1.6.3",
-    "better-sqlite3": "^9.2.2",
+    "better-sqlite3": "^11.10.0",
     "cookie-parser": "^1.4.6",
     "csv-string": "^4.1.1",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "express": "^5.1.0",
     "express-fileupload": "^1.4.3",
     "jsonwebtoken": "^9.0.2",
     "sqlite3": "^5.1.6"
