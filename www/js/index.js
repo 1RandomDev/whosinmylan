@@ -154,6 +154,7 @@ function editDevice(input, deviceId, value) {
     let device = devices.online.find(dev => dev.id == deviceId);
     if(!device) device = devices.offline.find(dev => dev.id == deviceId);
     device[value] = input.value;
+    device.changedField = value;
 
     updateDevice(device, 'POST');
 }

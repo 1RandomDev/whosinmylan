@@ -22,6 +22,7 @@
     "express": "^5.1.0",
     "express-fileupload": "^1.4.3",
     "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.13.1",
     "sqlite3": "^5.1.6"
   }
 }

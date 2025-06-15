@@ -8,8 +8,7 @@
 
 # Whos In My LAN
 
-Network scanner with webinterface and notifications. \
-This project was heavily inspired by [aceberg/WatchYourLAN](https://github.com/aceberg/WatchYourLAN).
+Network scanner with webinterface, notifications and HomeAssistant integration for device trackers. \
 
 ![Screenshot](https://raw.githubusercontent.com/1RandomDev/whosinmylan/master/assets/screenshot1.png)
 For more images see [here](https://github.com/1RandomDev/whosinmylan/tree/master/assets).
@@ -60,6 +59,12 @@ For all available options see [docker-compose.yml](https://github.com/1RandomDev
 | WEBUI_PASSWORD | Password for accessing the webinterface. | none |
 | WEBUI_JWT_KEY | Key for generating login tokens (JWT). Should be set to a long random string. If kept empty sessions won't be saved across restarts. | random generated |
 | APPRISE_URL | URL for prefered notification service. See [list of supported services](https://github.com/caronc/apprise#supported-notifications). | none |
+| INSTANCE_ID | Currently only used for HomeAssistant discovery. Only needs to be changed when running multiple instances. | `whosinmylan` |
+| TRACKED_DEVICES | Comma separated list of mac addresses for which devices trackers should be exposed to HomeAssistant. | none |
+| MQTT_HOST | Host of the MQTT broker used to connect to HomeAssistant. | none |
+| MQTT_PORT | MATT broker port. | `1883` |
+| MQTT_USERNAME | MQTT broker username if needed. | none |
+| MQTT_PASSWORD | MQTT broker password if needed. | none |
 | DATABASE_FILE | Path to the database file. | `/data/data.db` |
 
 ## Resources

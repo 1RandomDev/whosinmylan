@@ -5,7 +5,7 @@ class Database {
         this.db = new SqliteDatabase(dbPath);
         this.db.exec('CREATE TABLE IF NOT EXISTS devices ('
             + 'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,'
-            + 'if VARCHAR'
+            + 'if VARCHAR,'
             + 'name VARCHAR,'
             + 'known INTEGER,'
             + 'ip VARCHAR,'
@@ -35,6 +35,11 @@ class Database {
     getDevicesByInterface(intf) {
         const stmt = this.db.prepare('SELECT * FROM devices WHERE if = ? ORDER BY id DESC');
         return stmt.all(intf);
+    }
+
+    getDevicesByMac(mac) {
+        const stmt = this.db.prepare('SELECT * FROM devices WHERE mac = ? ORDER BY id DESC');
+        return stmt.all(mac);
     }
 
     getAllDevices() {

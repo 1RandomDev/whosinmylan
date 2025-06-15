@@ -120,7 +120,6 @@ class Webinterface {
                             let foundDevice = devices.find(dev => dev.if == importDevice.if && dev.mac == importDevice.mac);
                             if(foundDevice) {
                                 foundDevice = Object.assign(foundDevice, importDevice);
-                                console.log(foundDevice)
                                 this.main.database.updateDevice(foundDevice);
                                 stats.updated++;
                             } else {
@@ -201,6 +200,10 @@ class Webinterface {
         this.app.post('/api/device', (req, res) => {
             const data = req.body;
             try {
+                if(data.changedField == 'name') {
+                    this.main.deviceTracker.sendDiscoveryMessage(data.mac);
+                }
+                
                 this.main.database.updateDevice(data);
                 res.end();
             } catch(err) {

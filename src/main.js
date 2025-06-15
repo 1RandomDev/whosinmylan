@@ -2,6 +2,7 @@ const arpscan = require('./util/arpscan');
 const Database = require('./util/database');
 const Apprise = require('./util/apprise');
 const Webinterface = require('./util/webinterface');
+const HADeviceTracker = require('./util/ha_device_tracker');
 require('dotenv').config()
 
 class Main {
@@ -39,6 +40,7 @@ class Main {
                     this.apprise.sendNotification('New Network Device', message + (this.config.webuiUrl ? `\n${this.config.webuiUrl}/?if=${curInterface}&highlight=${deviceId}` : null));
                     newDeviceCount++;
                 }
+                this.deviceTracker.markDeviceOnline(foundDevice.mac);
             });
         }
 
@@ -47,6 +49,7 @@ class Main {
     
     start() {
         this.config = {
+            instanceId: process.env.INSTANCE_ID || 'whosinmylan',
             scanInterval: process.env.SCAN_INTERVAL*1000 || 60000, 
             interfaces: process.env.INTERFACE.split(',').map(intf => intf.trim()) || ['eth0'],
             databaseFile: process.env.DATABASE_FILE || './data/data.db',
@@ -58,6 +61,13 @@ class Main {
                 adminPassword: process.env.WEBUI_PASSWORD,
                 jwtKey: process.env.WEBUI_JWT_KEY,
                 apiKey: process.env.API_KEY
+            },
+            deviceTracker: {
+                trackedDevices: process.env.TRACKED_DEVICES,
+                mqttHost: process.env.MQTT_HOST,
+                mqttPort: process.env.MQTT_PORT || 1883,
+                mqttUsername: process.env.MQTT_USERNAME,
+                mqttPassword: process.env.MQTT_PASSWORD
             }
         };
         this.config.onlineTimeout = process.env.ONLINE_TIMEOUT || (this.config.scanInterval > 0 ? this.config.scanInterval+10000 : 300000);
@@ -65,9 +75,10 @@ class Main {
         this.database = new Database(this.config.databaseFile);
         this.database.createNewColumns({firstInterface: this.config.interfaces[0]});
 
-        this.apprise = new Apprise(this.config.appriseUrl);
-
         this.arpscan = arpscan;
+        this.apprise = new Apprise(this.config.appriseUrl);
+        this.deviceTracker = new HADeviceTracker(this.config.deviceTracker, this.config.instanceId, this);
+        this.deviceTracker.start();
     
         this.webinterface = new Webinterface(this.config.webui, this);
         this.webinterface.start();
