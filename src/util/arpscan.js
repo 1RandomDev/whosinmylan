@@ -1,4 +1,7 @@
 const childProcess = require('child_process');
+const fs = require('fs');
+
+const MAC_VENDOR_FILE = '/usr/share/arp-scan/ieee-oui.txt';
 
 async function scanNetwork(interface) {
     return new Promise((resolve, reject) => {
@@ -35,4 +38,15 @@ async function scanNetwork(interface) {
     });
 }
 
+function getMacVendor(mac) {
+    mac = mac.replace(/:/g, '').toUpperCase();
+    const mappings = fs.readFileSync(MAC_VENDOR_FILE).toString();
+    for(let line of mappings.split('\n')) {
+        if(line.length == '' || line.startsWith('#')) continue;
+        const [prefix, vendor] = line.split('\t');
+        if(mac.startsWith(prefix)) return vendor;
+    }
+}
+
 module.exports.scanNetwork = scanNetwork;
+module.exports.getMacVendor = getMacVendor;

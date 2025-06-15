@@ -57,16 +57,19 @@ class Main {
             webuiHost: process.env.WEBUI_HOST || '0.0.0.0',
             webuiPort: process.env.WEBUI_PORT || 8484,
             webuiPassword: process.env.WEBUI_PASSWORD,
-            webuiJwtKey: process.env.WEBUI_JWT_KEY
+            webuiJwtKey: process.env.WEBUI_JWT_KEY,
+            apiKey: process.env.API_KEY
         };
-        this.config.onlineTimeout = process.env.ONLINE_TIMEOUT || (this.config.scanInterval > 0 ? this.config.scanInterval*3 : 300000);
+        this.config.onlineTimeout = process.env.ONLINE_TIMEOUT || (this.config.scanInterval > 0 ? this.config.scanInterval+10000 : 300000);
 
         this.database = new Database(this.config.databaseFile);
-        this.database.createNewColumns({firstInterface: this.config.interfaces[0] });
+        this.database.createNewColumns({firstInterface: this.config.interfaces[0]});
 
         this.apprise = new Apprise(this.config.appriseUrl);
+
+        this.arpscan = arpscan;
     
-        this.webinterface = new Webinterface(this.config.webuiHost, this.config.webuiPort, this.config.webuiPassword, this.config.webuiJwtKey, this);
+        this.webinterface = new Webinterface(this.config.webuiHost, this.config.webuiPort, this.config.webuiPassword, this.config.apiKey, this.config.webuiJwtKey, this);
         this.webinterface.start();
         
         if(this.config.scanInterval > 0) {

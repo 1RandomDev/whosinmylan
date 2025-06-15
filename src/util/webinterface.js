@@ -6,10 +6,11 @@ const crypto = require('crypto');
 const CSV = require('csv-string');
 
 class Webinterface {
-    constructor(host, port, adminPassword, jwtKey, main) {
+    constructor(host, port, adminPassword, apiKey, jwtKey, main) {
         this.host = host;
         this.port = port;
         this.adminPassword = adminPassword;
+        this.apiKey = apiKey;
         this.jwtKey = jwtKey;
         this.main = main;
 
@@ -43,8 +44,11 @@ class Webinterface {
                 }
 
                 let loggedIn = false;
-                const token = req.cookies.token;
-                if(token) loggedIn = this.checkToken(token);
+                if(req.cookies.token) {
+                    loggedIn = this.checkToken(req.cookies.token);
+                } else if(this.apiKey && req.headers.authorization) {
+                    loggedIn = req.headers.authorization.split(' ')?.[1] === this.apiKey;
+                }
 
                 if(req.path.startsWith('/api/')) {
                     // require login for api requests
@@ -229,16 +233,48 @@ class Webinterface {
             }
         });
 
+        this.app.post('/api/devstate', (req, res) => {
+            const data = req.body;
+            try {
+                if(data.mac && data.ip && data.if) {
+                    data.mac = data.mac.toLowerCase();
+                    const savedDevices = this.main.database.getAllDevices();
+                    const savedDevice = savedDevices.find(dev => dev.if == data.if && dev.mac == data.mac);
+                    if(savedDevice) {
+                        savedDevice.ip = data.ip;
+                        savedDevice.last_seen = Date.now();
+                        this.main.database.updateDevice(savedDevice);
+                    } else {
+                        data.hw = this.main.arpscan.getMacVendor(data.mac) || '(Unknown)';
+                        data.name = '';
+                        data.known = 0;
+                        data.last_seen = Date.now();
+                        const deviceId = this.main.database.saveDevice(data).id;
+            
+                        const message = `MAC: ${data.mac}, IP: ${data.ip}, Hw: ${data.hw}, If: ${data.if}`;
+                        console.log('Found new device: '+message);
+                        this.main.apprise.sendNotification('New Network Device', message + (this.main.config.webuiUrl ? `\n${this.main.config.webuiUrl}/?if=${data.if}&highlight=${deviceId}` : null));
+                    }
+                    res.end();
+                } else {
+                    res.status(400).end();
+                }
+            } catch(err) {
+                console.error(err);
+                res.status(400).end();
+            }
+        });
+
         this.app.get('/api/interfaces', (req, res) => {
             res.json(this.main.config.interfaces);
         });
 
         this.app.post('/api/login', (req, res) => {
             const data = req.body;
-            if(data.password) {
+            if(data?.password) {
                 const token = this.loginUser(data.password);
                 if(token) {
-                    res.cookie('token', token, {maxAge: 2630000000}).json({success: true});
+                    res.cookie('token', token, {maxAge: 2630000000 /* 30d */}).json({success: true});
                 } else {
                     res.json({success: false});
                 }
