@@ -50,15 +50,15 @@ class Main {
             scanInterval: process.env.SCAN_INTERVAL*1000 || 60000, 
             interfaces: process.env.INTERFACE.split(',').map(intf => intf.trim()) || ['eth0'],
             databaseFile: process.env.DATABASE_FILE || './data/data.db',
-
             appriseUrl: process.env.APPRISE_URL,
-
-            webuiUrl: process.env.WEBUI_URL,
-            webuiHost: process.env.WEBUI_HOST || '0.0.0.0',
-            webuiPort: process.env.WEBUI_PORT || 8484,
-            webuiPassword: process.env.WEBUI_PASSWORD,
-            webuiJwtKey: process.env.WEBUI_JWT_KEY,
-            apiKey: process.env.API_KEY
+            webui: {
+                url: process.env.WEBUI_URL,
+                host: process.env.WEBUI_HOST,
+                port: process.env.WEBUI_PORT || 8484,
+                adminPassword: process.env.WEBUI_PASSWORD,
+                jwtKey: process.env.WEBUI_JWT_KEY,
+                apiKey: process.env.API_KEY
+            }
         };
         this.config.onlineTimeout = process.env.ONLINE_TIMEOUT || (this.config.scanInterval > 0 ? this.config.scanInterval+10000 : 300000);
 
@@ -69,7 +69,7 @@ class Main {
 
         this.arpscan = arpscan;
     
-        this.webinterface = new Webinterface(this.config.webuiHost, this.config.webuiPort, this.config.webuiPassword, this.config.apiKey, this.config.webuiJwtKey, this);
+        this.webinterface = new Webinterface(this.config.webui, this);
         this.webinterface.start();
         
         if(this.config.scanInterval > 0) {

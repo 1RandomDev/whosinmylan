@@ -6,16 +6,12 @@ const crypto = require('crypto');
 const CSV = require('csv-string');
 
 class Webinterface {
-    constructor(host, port, adminPassword, apiKey, jwtKey, main) {
-        this.host = host;
-        this.port = port;
-        this.adminPassword = adminPassword;
-        this.apiKey = apiKey;
-        this.jwtKey = jwtKey;
+    constructor(config, main) {
+        this.config = config;
         this.main = main;
 
-        if(this.adminPassword && !this.jwtKey) {
-            this.jwtKey = this.generateRandomKey();
+        if(this.config.adminPassword && !this.config.jwtKey) {
+            this.config.jwtKey = this.generateRandomKey();
             console.warn('WEBUI_JWT_KEY is not set. Generating random key, this will lead to all users being logged out.');
         }
     }
@@ -30,7 +26,7 @@ class Webinterface {
             const queryParams = Object.keys(req.query);
             req.rawQuery = queryParams.length != 0 ? '?'+queryParams.map(key => key + '=' + req.query[key]).join('&') : '';
 
-            if(!this.adminPassword) {
+            if(!this.config.adminPassword) {
                 // redirect away from login page if authentication diabled
                 if(req.path == '/login.html') {
                     res.redirect('/'+req.rawQuery);
@@ -46,8 +42,8 @@ class Webinterface {
                 let loggedIn = false;
                 if(req.cookies.token) {
                     loggedIn = this.checkToken(req.cookies.token);
-                } else if(this.apiKey && req.headers.authorization) {
-                    loggedIn = req.headers.authorization.split(' ')?.[1] === this.apiKey;
+                } else if(this.config.apiKey && req.headers.authorization) {
+                    loggedIn = req.headers.authorization.split(' ')?.[1] === this.config.apiKey;
                 }
 
                 if(req.path.startsWith('/api/')) {
@@ -253,7 +249,7 @@ class Webinterface {
             
                         const message = `MAC: ${data.mac}, IP: ${data.ip}, Hw: ${data.hw}, If: ${data.if}`;
                         console.log('Found new device: '+message);
-                        this.main.apprise.sendNotification('New Network Device', message + (this.main.config.webuiUrl ? `\n${this.main.config.webuiUrl}/?if=${data.if}&highlight=${deviceId}` : null));
+                        this.main.apprise.sendNotification('New Network Device', message + (this.config.url ? `\n${this.config.url}/?if=${data.if}&highlight=${deviceId}` : null));
                     }
                     res.end();
                 } else {
@@ -286,8 +282,8 @@ class Webinterface {
             res.clearCookie('token').end();
         });
 
-        this.app.listen(this.port, this.host, () => {
-            console.log('Started webinterface on port '+this.port);
+        this.app.listen(this.config.port, this.config.host, () => {
+            console.log('Started webinterface on port '+this.config.port);
         });
     }
 
@@ -296,8 +292,8 @@ class Webinterface {
     }
 
     loginUser(password) {
-        if(password === this.adminPassword) {
-            const token = jwt.sign({}, this.jwtKey, {
+        if(password === this.config.adminPassword) {
+            const token = jwt.sign({}, this.config.jwtKey, {
                 expiresIn: '30d'
             });
             return token;
@@ -308,7 +304,7 @@ class Webinterface {
 
     checkToken(token) {
         try {
-            jwt.verify(token, this.jwtKey);
+            jwt.verify(token, this.config.jwtKey);
             return true;
         } catch(err) {
             return false;
