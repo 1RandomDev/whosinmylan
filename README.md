@@ -8,7 +8,7 @@
 
 # Whos In My LAN
 
-Network scanner with webinterface, notifications and HomeAssistant integration for device trackers. \
+Network scanner with webinterface, notifications and HomeAssistant integration for device trackers.
 
 ![Screenshot](https://raw.githubusercontent.com/1RandomDev/whosinmylan/master/assets/screenshot1.png)
 For more images see [here](https://github.com/1RandomDev/whosinmylan/tree/master/assets).
