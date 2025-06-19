@@ -50,7 +50,7 @@ class Main {
     start() {
         this.config = {
             instanceId: process.env.INSTANCE_ID || 'whosinmylan',
-            scanInterval: process.env.SCAN_INTERVAL*1000 || 60000, 
+            scanInterval: process.env.SCAN_INTERVAL*1000 || 300000, 
             interfaces: process.env.INTERFACE.split(',').map(intf => intf.trim()) || ['eth0'],
             databaseFile: process.env.DATABASE_FILE || './data/data.db',
             appriseUrl: process.env.APPRISE_URL,

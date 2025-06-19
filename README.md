@@ -51,7 +51,7 @@ For all available options see [docker-compose.yml](https://github.com/1RandomDev
 | Variable | Description | Default |
 | -------- | ----------- | ------- |
 | INTERFACE | Network interface to scan. Multiple interfaces can be specified comma separated (e.g. `vlan1,vlan2`). | `eth0` |
-| SCAN_INTERVAL | Time between scans in sconds. | `60` |
+| SCAN_INTERVAL | Time between scans in sconds. | `300` |
 | ONLINE_TIMEOUT | Time until a device is shown as offline. | `SCAN_INTERVAL+10s` |
 | WEBUI_URL | URL of the webinterface which is used for things like links in notifications. | none |
 | WEBUI_PORT | Port of the webinterface. | `8484` |
