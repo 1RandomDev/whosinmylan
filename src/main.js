@@ -37,7 +37,7 @@ class Main {
         
                     const message = `MAC: ${foundDevice.mac}, IP: ${foundDevice.ip}, Hw: ${foundDevice.hw}, If: ${curInterface}`;
                     console.log('Found new device: '+message);
-                    this.apprise.sendNotification('New Network Device', message + (this.config.webuiUrl ? `\n${this.config.webuiUrl}/?if=${curInterface}&highlight=${deviceId}` : null));
+                    this.apprise.sendNotification('New Network Device', message + (this.config.webuiUrl ? `\n${this.config.webui.url}/?if=${curInterface}&highlight=${deviceId}` : ''));
                     newDeviceCount++;
                 }
                 this.deviceTracker.markDeviceOnline(foundDevice.mac);

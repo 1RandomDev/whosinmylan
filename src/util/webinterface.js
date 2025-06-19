@@ -252,7 +252,7 @@ class Webinterface {
             
                         const message = `MAC: ${data.mac}, IP: ${data.ip}, Hw: ${data.hw}, If: ${data.if}`;
                         console.log('Found new device: '+message);
-                        this.main.apprise.sendNotification('New Network Device', message + (this.config.url ? `\n${this.config.url}/?if=${data.if}&highlight=${deviceId}` : null));
+                        this.main.apprise.sendNotification('New Network Device', message + (this.config.url ? `\n${this.config.url}/?if=${data.if}&highlight=${deviceId}` : ''));
                     }
                     res.end();
                 } else {
