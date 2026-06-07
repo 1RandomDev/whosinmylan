@@ -3,6 +3,7 @@ const tableOffline = document.querySelector('#tableOffline tbody');
 const numDevicesOnline = document.getElementById('numDevicesOnline');
 const numDevicesOffline = document.getElementById('numDevicesOffline');
 const logoutBtn = document.getElementById('logoutBtn');
+const searchInput = document.getElementById('searchInput');
 const addDeviceModal = document.querySelector('#addDeviceModal');
 const addDeviceForm = document.querySelector('#addDeviceModal form');
 const addDeviceFormButton = document.querySelector('#addDeviceModal form button[type="submit"]');
@@ -16,6 +17,11 @@ const interfaceSelect = document.getElementById('interfaceSelect');
 const timeFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'medium' });
 let devices;
 let deleteDevice, deleteDeviceEntry, scanInProgress, interfaces, selectedInterface;
+let sortState = {
+    online: { field: 'ip', order: 'asc' },
+    offline: { field: 'last_seen', order: 'desc' }
+};
+let searchTerm = '';
 
 const urlParams = new URLSearchParams(window.location.search);
 const highlightDevice = urlParams.get('highlight');
@@ -73,40 +79,17 @@ async function updateDeviceList() {
     const res = await fetch('/api/device?if='+selectedInterface);
     if(res.ok) {
         devices = await res.json();
-        devices.online = devices.online.sort((a, b) => ip2int(a.ip) - ip2int(b.ip));
-        devices.offline = devices.offline.sort((a, b) => b.last_seen - a.last_seen);
-        tableOnline.innerHTML = '';
-        tableOffline.innerHTML = '';
-        numDevicesOnline.innerText = devices.online.length;
-        numDevicesOffline.innerText = devices.offline.length
 
-        devices.online.forEach(device => {
-            const deviceElement = document.createElement('template');
-            deviceElement.innerHTML =
-                `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
-                    <td><input class="form-control name" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
-                    <td class="text-nowrap"><a target="_blank" href="http://${device.ip}/">${device.ip}</a></td>
-                    <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
-                    <td class="w-25">${device.hw}</td>
-                    <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
-                    <td><button class="btn btn-danger p-2" onclick="promptDeleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
-                </tr>`;
-            tableOnline.appendChild(deviceElement.content.firstChild);
-        });
-        devices.offline.forEach(device => {
-            const deviceElement = document.createElement('template');
-            deviceElement.innerHTML =
-                `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
-                    <td><input class="form-control name" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
-                    <td class="text-nowrap">${device.ip}</td>
-                    <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
-                    <td class="w-25">${device.hw}</td>
-                    <td>${device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)}</td>
-                    <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
-                    <td><button class="btn btn-danger p-2" onclick="promptDeleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
-                </tr>`;
-            tableOffline.appendChild(deviceElement.content.firstChild);
-        });
+        applySortToDevices('online');
+        applySortToDevices('offline');
+
+        renderTable('online');
+        renderTable('offline');
+        updateDeviceCount();
+
+        updateSortIndicators('online');
+        updateSortIndicators('offline');
+        
         if(highlightDevice) {
             const element = document.querySelector(`.device[data-id="${highlightDevice}"]`);
             if(element) element.scrollIntoView({block:'center'});
@@ -280,3 +263,129 @@ function showToast(data) {
     toastContainer.appendChild(toastElement);
     new bootstrap.Toast(toastElement).show();
 }
+
+function sortDevices(tableType, field) {
+    const currentSort = sortState[tableType];
+    if(currentSort.field === field) {
+        currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.field = field;
+        currentSort.order = 'asc';
+    }
+
+    applySortToDevices(tableType);
+    updateSortIndicators(tableType);
+    renderTable(tableType);
+}
+
+function applySortToDevices(tableType) {
+    const currentSort = sortState[tableType];
+    const deviceArray = devices[tableType];
+    
+    deviceArray.sort((a, b) => {
+        let aVal = a[currentSort.field];
+        let bVal = b[currentSort.field];
+        
+        if(currentSort.field === 'ip') {
+            aVal = ip2int(aVal);
+            bVal = ip2int(bVal);
+        } else if(currentSort.field === 'known') {
+            aVal = aVal || 0;
+            bVal = bVal || 0;
+        }
+
+        let result = 0;
+        if(typeof aVal === 'string') {
+            result = aVal.localeCompare(bVal);
+        } else {
+            result = aVal - bVal;
+        }
+        
+        return currentSort.order === 'asc' ? result : -result;
+    });
+}
+
+function getFilteredDevices(tableType) {
+    if(!searchTerm.trim()) {
+        return devices[tableType];
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    return devices[tableType].filter(device => {
+        const name = device.name.toLowerCase();
+        const ip = device.ip.toLowerCase();
+        const mac = device.mac.toLowerCase();
+        const hw = device.hw.toLowerCase();
+        
+        return name.includes(searchLower) || 
+               ip.includes(searchLower) || 
+               mac.includes(searchLower) || 
+               hw.includes(searchLower);
+    });
+}
+
+function updateDeviceCount() {
+    numDevicesOnline.innerText = getFilteredDevices('online').length;
+    numDevicesOffline.innerText = getFilteredDevices('offline').length;
+}
+
+function renderTable(tableType) {
+    const tbody = tableType === 'online' ? tableOnline : tableOffline;
+    const filteredDevices = getFilteredDevices(tableType);
+    
+    tbody.innerHTML = '';
+    filteredDevices.forEach(device => {
+        const deviceElement = document.createElement('template');
+        if(tableType === 'online') {
+            deviceElement.innerHTML =
+                `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
+                    <td><input class="form-control name" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
+                    <td class="text-nowrap"><a target="_blank" href="http://${device.ip}/">${device.ip}</a></td>
+                    <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
+                    <td class="w-25">${device.hw}</td>
+                    <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
+                    <td><button class="btn btn-danger p-2" onclick="promptDeleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
+                </tr>`;
+        } else {
+            deviceElement.innerHTML =
+                `<tr class="device ${highlightDevice == device.id ? 'highlight' : ''}" data-id="${device.id}">
+                    <td><input class="form-control name" type="text" value="${device.name}" onchange="editDevice(this, ${device.id}, 'name');"></td>
+                    <td class="text-nowrap">${device.ip}</td>
+                    <td class="text-nowrap">${formatMacAddress(device.mac)}</td>
+                    <td class="w-25">${device.hw}</td>
+                    <td>${device.last_seen == -1 ? 'Never' : timeFormat.format(device.last_seen)}</td>
+                    <td><button class="btn btn-${device.known ? 'success' : 'warning'} known-btn" onclick="toggleKnown(this, ${device.id});">${device.known ? 'Yes' : 'No'}</button></td>
+                    <td><button class="btn btn-danger p-2" onclick="promptDeleteDevice(this, ${device.id});"><img height="20" width="20" src="img/delete.svg"></button></td>
+                </tr>`;
+        }
+        tbody.appendChild(deviceElement.content.firstChild);
+    });
+}
+
+function updateSortIndicators(tableType) {
+    const tableSelector = tableType === 'online' ? '#tableOnline' : '#tableOffline';
+    const table = document.querySelector(tableSelector);
+    const headers = table.querySelectorAll('th[data-sort]');
+    const currentSort = sortState[tableType];
+    
+    headers.forEach(header => {
+        header.classList.remove('sort-asc', 'sort-desc');
+        if(header.dataset.sort === currentSort.field) {
+            header.classList.add(`sort-${currentSort.order}`);
+        }
+    });
+}
+
+document.querySelectorAll('#tableOnline th[data-sort]').forEach(header => {
+    header.addEventListener('click', () => sortDevices('online', header.dataset.sort));
+});
+document.querySelectorAll('#tableOffline th[data-sort]').forEach(header => {
+    header.addEventListener('click', () => sortDevices('offline', header.dataset.sort));
+});
+
+searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value;
+    renderTable('online');
+    renderTable('offline');
+    updateDeviceCount();
+});

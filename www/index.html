@@ -24,6 +24,26 @@
             .device .name {
                 min-width: 200px;
             }
+            th[data-sort] {
+                cursor: pointer;
+                user-select: none;
+            }
+            th[data-sort]::after {
+                content: ' ⇅';
+                opacity: 0.4;
+                font-size: 0.8em;
+            }
+            th[data-sort].sort-asc::after {
+                content: ' ↑';
+                opacity: 1;
+            }
+            th[data-sort].sort-desc::after {
+                content: ' ↓';
+                opacity: 1;
+            }
+            .search-container input {
+                max-width: 800px;
+            }
             @media only screen and (max-width: 510px) {
                 .offlineDeviceButtons {
                     float: unset !important;
@@ -41,6 +61,10 @@
             <div class="btn-group d-none" id="interfaceSelect"></div>
 
             <div class="mt-5">
+                <div class="d-flex justify-content-center mb-5 search-container">
+                    <input type="text" class="form-control form-control-lg" id="searchInput" placeholder="Search by name, IP, MAC, or manufacturer..." autocomplete="off">
+                </div>
+
                 <h2 class="float-start">Online (<span id="numDevicesOnline"></span>)</h2>
                 <div class="btn-group float-end">
                     <button class="btn btn-outline-info" id="rescanBtn">
@@ -52,11 +76,11 @@
                     <table id="tableOnline" class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Ip</th>
-                                <th>Mac</th>
-                                <th>Hardware</th>
-                                <th>Known</th>
+                                <th data-sort="name">Name</th>
+                                <th data-sort="ip">Ip</th>
+                                <th data-sort="mac">Mac</th>
+                                <th data-sort="hw">Hardware</th>
+                                <th data-sort="known">Known</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -73,12 +97,12 @@
                     <table id="tableOffline" class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Ip</th>
-                                <th>Mac</th>
-                                <th>Hardware</th>
-                                <th>Last seen</th>
-                                <th>Known</th>
+                                <th data-sort="name">Name</th>
+                                <th data-sort="ip">Ip</th>
+                                <th data-sort="mac">Mac</th>
+                                <th data-sort="hw">Hardware</th>
+                                <th data-sort="last_seen">Last seen</th>
+                                <th data-sort="known">Known</th>
                                 <th></th>
                             </tr>
                         </thead>
