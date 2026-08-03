@@ -15,14 +15,14 @@
     "url": "https://github.com/1RandomDev/whosinmylan.git"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
-    "cookie-parser": "^1.4.6",
+    "better-sqlite3": "^13.0.2",
+    "cookie-parser": "^1.4.7",
     "csv-string": "^4.1.1",
-    "dotenv": "^16.3.1",
-    "express": "^5.1.0",
-    "express-fileupload": "^1.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "mqtt": "^5.13.1",
-    "sqlite3": "^5.1.6"
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-fileupload": "^1.5.2",
+    "jsonwebtoken": "^9.0.3",
+    "mqtt": "^5.15.2",
+    "sqlite3": "^6.0.1"
   }
 }

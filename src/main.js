@@ -3,7 +3,7 @@ const Database = require('./util/database');
 const Apprise = require('./util/apprise');
 const Webinterface = require('./util/webinterface');
 const HADeviceTracker = require('./util/ha_device_tracker');
-require('dotenv').config()
+require('dotenv').config({ quiet: true });
 
 class Main {
     async updateDeviceList(interfaceFilter) {
