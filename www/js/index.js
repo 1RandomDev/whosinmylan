@@ -4,6 +4,7 @@ const numDevicesOnline = document.getElementById('numDevicesOnline');
 const numDevicesOffline = document.getElementById('numDevicesOffline');
 const logoutBtn = document.getElementById('logoutBtn');
 const searchInput = document.getElementById('searchInput');
+const searchClearBtn = document.getElementById('searchClearBtn');
 const addDeviceModal = document.querySelector('#addDeviceModal');
 const addDeviceForm = document.querySelector('#addDeviceModal form');
 const addDeviceFormButton = document.querySelector('#addDeviceModal form button[type="submit"]');
@@ -385,7 +386,14 @@ document.querySelectorAll('#tableOffline th[data-sort]').forEach(header => {
 
 searchInput.addEventListener('input', (e) => {
     searchTerm = e.target.value;
+    searchClearBtn.classList.toggle('d-none', !searchTerm);
     renderTable('online');
     renderTable('offline');
     updateDeviceCount();
+});
+
+searchClearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.focus();
 });
