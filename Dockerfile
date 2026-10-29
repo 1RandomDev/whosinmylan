@@ -1,9 +1,11 @@
-FROM alpine:latest AS arp-scan-builder
+FROM alpine:latest AS builder
 
 ARG ARP_SCAN_VERSION=latest
 
-RUN apk add --no-cache build-base autoconf automake libpcap-dev curl \
-    && if [ "$ARP_SCAN_VERSION" = "latest" ]; then \
+RUN apk add --no-cache build-base autoconf automake libpcap-dev curl python3 nodejs npm
+
+# Build arp-scan
+RUN if [ "$ARP_SCAN_VERSION" = "latest" ]; then \
         ARP_SCAN_VERSION=$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/royhills/arp-scan/releases/latest | sed -n 's|.*/releases/tag/||p'); \
         [ -n "$ARP_SCAN_VERSION" ] || ARP_SCAN_VERSION=master; \
     fi \
@@ -18,18 +20,23 @@ RUN apk add --no-cache build-base autoconf automake libpcap-dev curl \
     && make install-exec install-dist_pkgdataDATA install-dist_pkgsysconfDATA DESTDIR=/out \
     && chmod u-s /out/usr/bin/arp-scan
 
+# Build node dependencies
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install --omit=dev
+
 
 FROM alpine:latest
 
-COPY --from=arp-scan-builder /out/ /
-
-RUN apk add --no-cache nodejs npm tzdata libpcap python3 py3-pip g++ make \
+COPY --from=builder /out/ /
+RUN apk add --no-cache tzdata libpcap nodejs python3 py3-pip \
     && pip install --no-cache-dir --break-system-packages apprise \
+    && apk del py3-pip \
     && mkdir /data
 
 COPY . /app
+COPY --from=builder /app/node_modules /app/node_modules
 WORKDIR /app
-RUN npm install --omit=dev
 
 ENV DATABASE_FILE=/data/data.db
 ENTRYPOINT ["node", "src/main.js"]
