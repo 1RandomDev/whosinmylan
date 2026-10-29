@@ -150,7 +150,7 @@ addDeviceForm.addEventListener('submit', async event => {
     const data = new FormData(addDeviceForm);
     const device = {
         name: data.get('name'),
-        mac: data.get('mac').toLowerCase().replace('-', ':'),
+        mac: data.get('mac').toLowerCase().replace(/-/g, ':'),
         ip: '0.0.0.0',
         hw: '-',
         last_seen: -1,
@@ -312,6 +312,7 @@ function getFilteredDevices(tableType) {
     }
     
     const searchLower = searchTerm.toLowerCase();
+    const searchMac = searchLower.replace(/-/g, ':');
     return devices[tableType].filter(device => {
         const name = device.name.toLowerCase();
         const ip = device.ip.toLowerCase();
@@ -320,7 +321,7 @@ function getFilteredDevices(tableType) {
         
         return name.includes(searchLower) || 
                ip.includes(searchLower) || 
-               mac.includes(searchLower) || 
+               mac.includes(searchMac) ||
                hw.includes(searchLower);
     });
 }
