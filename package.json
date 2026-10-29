@@ -1,6 +1,6 @@
 {
   "name": "whosinmylan",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Network scanner with webinterface and notifications.",
   "main": "src/main.js",
   "scripts": {
