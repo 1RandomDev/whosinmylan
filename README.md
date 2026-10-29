@@ -1,17 +1,26 @@
 
 <div align="center">
 <a href="https://github.com/1RandomDev/whosinmylan">
-    <img src="https://raw.githubusercontent.com/1RandomDev/whosinmylan/master/www/img/icon.png" width="128" />
+    <img src="www/img/icon.png" width="128" />
 </a>
 </div>
 <br>
 
-# Whos In My LAN
+# WhosInMyLAN
 
 Network scanner with webinterface, notifications and HomeAssistant integration for device trackers.
 
-![Screenshot](https://raw.githubusercontent.com/1RandomDev/whosinmylan/master/assets/screenshot1.png)
-For more images see [here](https://github.com/1RandomDev/whosinmylan/tree/master/assets).
+![Screenshot](images/screenshot-devices.png)
+More screenshots can be found in [images](images).
+
+## Key Features
+- **Automatic network scanning** – never lose track of your devices
+- **VLAN support** – monitor multiple networks at once
+- **Notifications** – get alerted about new devices via [Apprise](https://github.com/caronc/apprise)
+- **HomeAssistant integration** – expose device trackers via MQTT discovery
+- **Webinterface** – manage, name and search devices, password protected
+- **Import & export** – backup your device list as CSV or JSON
+- **External device state API** – mark devices as online from other services
 
 ## Installation
 
@@ -45,7 +54,7 @@ services:
       - WEBUI_JWT_KEY=<long_random_string>
     restart: unless-stopped
 ```
-For all available options see [docker-compose.yml](https://github.com/1RandomDev/whosinmylan/blob/master/docker-compose.yml)
+For all available options see [docker-compose.yml](docker-compose.yml).
 
 ## Configuration
 | Variable | Description | Default |
